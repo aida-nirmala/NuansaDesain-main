@@ -1,0 +1,10 @@
+Next Tasks 
+1. Fungsi pilih_rekomendasi mengambil data dari SQL bukan CSV
+2. Halaman pilih_rekomendasi menyimpan riwayat
+3. Halaman riwayat_rekomendasi menampilkan riwayat per user
+4. Cari cara agar session state di halaman pilih_rekomendasi otomatis reset ketika berpindah halaman (done)
+5. Insert, Update, Delete Data Warna oleh Admin
+6. Insert, Update, Delete Data User oleh Admin
+7. Perbarui nama kolom tabel di halaman daftar_rekomendasi dan riwayat_rekomendasi
+8. Perbarui Title dan Informasi pendukung tiap halaman
+9. revisi tabel user

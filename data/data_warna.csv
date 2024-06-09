@@ -1,0 +1,31 @@
+warna,style_desain,makna_warna,sifat,usia_pengguna,warna_dasar
+Putih,"American Classic, Tradisional, Industrial, Minimalis, Alam",Suci,Dingin,"R, L",Putih
+Hitam,Industrial,Kekuatan,Panas,"R, D",Hitam
+Kuning,American Classic,Keceriaan,Panas,"A, R, D",Kuning
+Merah,American Classic,Keberanian,Panas,"A, R, D",Merah
+Ungu,Modern,Keagungan,Dingin,"A, R, D","Merah, Biru"
+Hijau,Alam,Santai,Dingin,"A, R, D, L","Kuning, Biru"
+Biru,Alam,Ketenangan,Dingin,"A, R, D, L",Biru
+Oren,American Classic,Keceriaan,Panas,"A, R, D, L","Merah, Kuning"
+Coklat,"Tradisional, Alam",Kenyamanan,Hangat,"R, L","Merah, Biru, Kuning"
+Abu-Abu,Industrial,Kerendahan hati,Dingin,"R, D, L","Hitam, Putih"
+Merah muda,Modern,Kewanitaan,Panas,"A, R, D","Merah, Putih"
+Merah tua,Modern,Keberanian,Panas,"R, L","Merah, Hitam"
+Biru tua,Alam,Ketenangan,Dingin,"A, R, D, L","Biru, Hitam"
+Abu-Abu tua,Industrial,Kerendahan hati,Panas,"D, R, L","Putih, Hitam"
+Hijau tua,Alam,Santai,Dingin,L,"Hijau, Hitam"
+Coklat tua,"Tradisional, Alam",Kejantanan,Hangat,L,"Merah, Biru, Kuning"
+Coklat muda,"American Classic, Tradisional, Alam",Kejantanan,Hangat,L,"Merah, Biru, Kuning"
+Biru muda,"American Classic, Alam",Kewanitaan,Dingin,"A, R, D, L","Biru, Putih"
+Abu-Abu muda,Industrial,Kerendahan hati,Dingin,"R, D, L","Hitam, Putih"
+Hijau muda,"American Classic, Alam",Kewanitaan,Hangat,"A, R, D, L","Biru, Kuning"
+Magenta,"American Classic, Modern",Kewanitaan,Dingin,"A, R, D, L","Biru, Merah, Putih"
+Emas,American Classic,Keagungan,Panas,"A, R, D, L","Merah, Biru, Kuning"
+Biru navy,Alam,Ketenangan,Dingin,"A, R, D, L","Biru, Hitam"
+Merah maroon,"Tradisional, Alam",Keceriaan,Panas,"R, D, L","Merah, Biru, Kuning"
+Peach,"American Classic, Modern",Kewanitaan,Hangat,"R, D, L","Merah, Kuning, Putih"
+Silver,Industrial,Ketenangan,Dingin,"R, D, L","Hitam, Putih"
+Coral,American Classic,Kewanitaan,Panas,"A, R, D, L","Merah, Kuning"
+Biru air,"American Classic, Alam",Ketenangan,Dingin,"A, R, D, L","Biru, Putih"
+Krem,American Classic,Kehangatan,Hangat,"R, D, L","Merah, Biru, Kuning"
+Hijau lumut,Alam,Kejantanan,Dingin,L,"Biru, Kuning, Putih"
