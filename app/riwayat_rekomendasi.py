@@ -13,38 +13,8 @@ def riwayat_rekomendasi():
         database='db_rekomendasi'
     )
 
-    # Variabel Streamlit untuk mendapatkan input dari pengguna
-    nama_kombinasi_preference = st.text_input('Nama Kombinasi Preference')
-    id_warna_1_preference = st.text_input('ID Warna 1 Preference')
-    id_warna_2_preference = st.text_input('ID Warna 2 Preference')
-    style_desain_preference = st.multiselect(
-        "Pilih preferensi style desain:", 
-        ["American Classic", "Tradisional", "Modern", "Industrial", "Alam"], 
-        key='style_desain'
-    )
-    makna_warna_preference = st.multiselect(
-        "Pilih preferensi makna warna:", 
-        ["Suci", "Kekuatan", "Keceriaan", "Keberanian", "Keagungan", "Santai", "Ketenangan", "Kenyamanan", "Kerendahan hati", "Kewanitaan", "Kejantanan", "Kehangatan"], 
-        key='makna_warna'
-    )
-    sifat_preference = st.multiselect(
-        "Pilih preferensi sifat:", 
-        ["Panas", "Hangat", "Dingin"], 
-        key='sifat'
-    )
-    usia_pengguna_preference = st.multiselect(
-        "Pilih preferensi usia pengguna:", 
-        ["Anak-anak (5-11 tahun)", "Remaja (12-25 tahun)", "Dewasa (26-45 tahun)", "Lansia (<45 tahun)"], 
-        key='usia_pengguna'
-    )
-    warna_dasar_preference = st.multiselect(
-        "Pilih preferensi warna dasar:", 
-        ["Putih", "Hitam", "Merah", "Kuning", "Biru"], 
-        key='warna_dasar'
-    )
-
     # Fungsi untuk menyimpan data ke dalam database MySQL
-    def save_to_db(nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+    def save_to_db(nama_kombinasi, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
         try:
             if conn.is_connected():
                 cursor = conn.cursor()
@@ -54,8 +24,6 @@ def riwayat_rekomendasi():
                     CREATE TABLE IF NOT EXISTS riwayat_rekomendasi (
                     id_riwayat INT AUTO_INCREMENT PRIMARY KEY,
                     nama_kombinasi TEXT,
-                    id_warna_1 TEXT,
-                    id_warna_2 TEXT,
                     style_desain TEXT,
                     makna_warna TEXT,
                     sifat TEXT,
@@ -67,12 +35,10 @@ def riwayat_rekomendasi():
                 
                 # Memasukkan data ke dalam tabel
                 cursor.execute('''
-                INSERT INTO riwayat_rekomendasi (nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO riwayat_rekomendasi (nama_kombinasi, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ''', (
                     nama_kombinasi,
-                    id_warna_1,
-                    id_warna_2,
                     ', '.join(style_desain),
                     ', '.join(makna_warna),
                     ', '.join(sifat),
@@ -88,20 +54,6 @@ def riwayat_rekomendasi():
                 cursor.close()
                 conn.close()
 
-    # Tombol untuk menyimpan data
-    if st.button('Simpan Preferensi'):
-        save_to_db(
-            nama_kombinasi_preference,
-            id_warna_1_preference,
-            id_warna_2_preference,
-            style_desain_preference,
-            makna_warna_preference,
-            sifat_preference,
-            usia_pengguna_preference,
-            warna_dasar_preference
-        )
-        st.success('Preferensi berhasil disimpan ke dalam database.')
-    
     # Menampilkan data dari tabel
     conn = mysql.connector.connect(
         host='localhost',
@@ -116,8 +68,27 @@ def riwayat_rekomendasi():
 
         columns = [i[0] for i in mycursor.description]
         df = pd.DataFrame(result, columns=columns)
+
+        # Menghilangkan kolom 'id_warna_1' dan 'id_warna_2'
+        if 'id_warna_1' in df.columns and 'id_warna_2' in df.columns:
+            df = df.drop(['id_warna_1', 'id_warna_2'], axis=1)
+
+        # Merename kolom DataFrame
+        df = df.rename(columns={
+            'id_riwayat': 'Id',
+            'nama_kombinasi': 'Kombinasi Warna',
+            'style_desain': 'Style Desain',
+            'makna_warna': 'Makna Warna',
+            'sifat': 'Sifat',
+            'usia_pengguna': 'Usia Pengguna',
+            'warna_dasar': 'Warna Dasar',
+            'created_at': 'Dibuat'
+        })
+        
         st.markdown(df.to_html(index=False), unsafe_allow_html=True)
         
         mycursor.close()
         conn.close()
 
+if __name__ == '__main__':
+    riwayat_rekomendasi()

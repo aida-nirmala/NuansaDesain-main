@@ -1,9 +1,18 @@
 import streamlit as st
 import pandas as pd
 import os
+import mysql.connector
+from mysql.connector import Error
 
 def pilih_rekomendasi():
     st.title('Pilih Rekomendasi Warna')
+    conn = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='db_rekomendasi'
+    )
+
 
     # Fungsi untuk merekomendasikan warna
     def recommend_color(style_desain_preference, makna_warna_preference, sifat_preference, usia_pengguna_preference, warna_dasar_preference):
@@ -41,6 +50,51 @@ def pilih_rekomendasi():
             return match_count / num_values if num_values > 0 else 0
         else:
             return 1 if item_attribute in user_preference else 0
+    
+    def save_to_db(nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+        try:
+            if conn.is_connected():
+                cursor = conn.cursor()
+                
+                # Membuat tabel jika belum ada
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS riwayat_rekomendasi (
+                    id_riwayat INT AUTO_INCREMENT PRIMARY KEY,
+                    nama_kombinasi TEXT,
+                    id_warna_1 TEXT,
+                    id_warna_2 TEXT,
+                    style_desain TEXT,
+                    makna_warna TEXT,
+                    sifat TEXT,
+                    usia_pengguna TEXT,
+                    warna_dasar TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                ''')
+                
+                # Memasukkan data ke dalam tabel
+                cursor.execute('''
+                INSERT INTO riwayat_rekomendasi (nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    nama_kombinasi,
+                    id_warna_1,
+                    id_warna_2,
+                    ', '.join(style_desain),
+                    ', '.join(makna_warna),
+                    ', '.join(sifat),
+                    ', '.join(usia_pengguna),
+                    ', '.join(warna_dasar)
+                ))
+                
+                conn.commit()
+        except Error as e:
+            st.error(f"Error: {e}")
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+
 
     # Reset session state jika halaman berpindah
     current_page = 'pilih_rekomendasi'
@@ -110,6 +164,18 @@ def pilih_rekomendasi():
                 selected_rekomendasi = top_recommendations[index_rekomendasi-1][0]
                 st.session_state.daftar_rekomendasi.append(selected_rekomendasi)
                 col1.text(f"Rekomendasi '{selected_rekomendasi}' telah disimpan.")
+                selected_ids = selected_rekomendasi.split('&')
+                id_warna_1_preference, id_warna_2_preference = selected_ids
+                save_to_db(
+                    selected_rekomendasi,
+                    id_warna_1_preference,
+                    id_warna_2_preference,
+                    style_desain_preference,
+                    makna_warna_preference,
+                    sifat_preference,
+                    usia_pengguna_preference,
+                    warna_dasar_preference
+                )
                 st.session_state.has_cari_rekomendasi = False
 
 pilih_rekomendasi()
