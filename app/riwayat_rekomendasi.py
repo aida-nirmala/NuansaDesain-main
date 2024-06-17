@@ -5,7 +5,12 @@ from mysql.connector import Error
 
 def riwayat_rekomendasi():
     st.title('Riwayat Rekomendasi')
-    
+
+    # Menambahkan barisan atau informasi tambahan
+    st.markdown("""
+         <p>Berikut adalah riwayat rekomendasi warna berdasarkan data yang terpilih.</p>
+    """, unsafe_allow_html=True)
+
     conn = mysql.connector.connect(
         host='localhost',
         user='root',

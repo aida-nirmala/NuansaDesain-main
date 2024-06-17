@@ -6,6 +6,11 @@ from mysql.connector import Error
 def daftar_user():
     st.title('Daftar User')
 
+    # Menambahkan deskripsi setelah judul
+    st.markdown("""
+            <p>Berikut adalah daftar semua pengguna yang terdaftar dalam sistem rekomendasi warna.</p>
+    """, unsafe_allow_html=True)
+
     def fetch_data_from_db(query):
         try:
             conn = mysql.connector.connect(

@@ -64,6 +64,11 @@ def insert_data(table, columns, values):
 def daftar_rekomendasi():
     st.title('Daftar Rekomendasi Warna')
 
+    # Menambahkan barisan atau informasi tambahan
+    st.markdown("""
+         <p>Berikut adalah daftar rekomendasi warna berdasarkan data yang tersedia.</p>
+    """, unsafe_allow_html=True)
+
     st.subheader('Data Warna')
     query_data_warna = "SELECT * FROM data_warna"
 
@@ -75,27 +80,18 @@ def daftar_rekomendasi():
 
     # Menambahkan kolom Gambar dengan format base64
     def get_image_base64(warna):
-        # Path ke gambar atau logika untuk mendapatkan gambar
-        # Misalnya, mengambil dari direktori 'warna' dengan nama sesuai 'warna'
-        # Sesuaikan ini dengan struktur direktori dan cara Anda menyimpan gambar
         path_to_image = f'warna/{warna}.png'
-
-        # Membaca gambar dalam bentuk byte
         with open(path_to_image, 'rb') as f:
             image_bytes = f.read()
-
-        # Mengonversi gambar ke base64
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
         return image_base64
 
-    # Menambahkan kolom Gambar dengan tag HTML img
     df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/png;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
 
     # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
-    columns_order = ['Id', 'Gambar'] + df_asli.columns[1:7].tolist()  # ['Id', 'Gambar', 'Warna', 'Style Desain', 'Makna Warna', 'Sifat', 'Usia Pengguna', 'Warna Dasar']
+    columns_order = ['Id', 'Gambar'] + df_asli.columns[1:7].tolist()
     df_asli = df_asli[columns_order]
 
-    # Menampilkan DataFrame sebagai tabel di Streamlit dengan konten HTML yang diizinkan
     st.markdown(df_asli.to_html(escape=False, index=False), unsafe_allow_html=True)
 
     st.subheader('Data Kombinasi')
@@ -105,7 +101,21 @@ def daftar_rekomendasi():
     # Rename columns for data_kombinasi
     df_kombinasi.columns = ["Id", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
 
-    st.markdown(df_kombinasi.to_html(index=False), unsafe_allow_html=True)
+    # Menambahkan kolom Gambar dengan dua gambar dalam satu kolom
+    def get_combined_image_base64(kombinasi_warna):
+        warna_1, warna_2 = kombinasi_warna.split(' & ')
+        img1 = get_image_base64(warna_1)
+        img2 = get_image_base64(warna_2)
+        return f'<img src="data:image/png;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
+               f'<img src="data:image/png;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
+
+    df_kombinasi['Gambar'] = df_kombinasi['Kombinasi Warna'].apply(get_combined_image_base64)
+
+    # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
+    columns_order = ['Id', 'Gambar'] + df_kombinasi.columns[1:7].tolist()
+    df_kombinasi = df_kombinasi[columns_order]
+
+    st.markdown(df_kombinasi.to_html(escape=False, index=False), unsafe_allow_html=True)
 
     if st.button('Tambah Data Warna Baru'):
         st.session_state.page = "Tambah Data Warna"
