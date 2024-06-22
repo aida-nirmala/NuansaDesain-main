@@ -40,6 +40,3 @@ def daftar_user():
     df_asli.columns = ["Id", "Username", "Password", "Role"]
 
     st.markdown(df_asli.to_html(index=False), unsafe_allow_html=True)
-
-if __name__ == '__main__':
-    daftar_user()

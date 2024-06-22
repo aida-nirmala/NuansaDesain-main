@@ -9,8 +9,12 @@ from app.home import home
 from app.pilih_rekomendasi import pilih_rekomendasi
 from app.daftar_rekomendasi import daftar_rekomendasi
 from app.riwayat_rekomendasi import riwayat_rekomendasi
+from app.tambah_rekomendasi import tambah_rekomendasi
 from app.edit_rekomendasi import edit_rekomendasi
+from app.hapus_rekomendasi import hapus_rekomendasi
 from app.daftar_user import daftar_user
+from app.tambah_user import tambah_user
+
 
 # Fungsi utama
 def main():
@@ -95,7 +99,7 @@ def main():
     if st.session_state.login:
         username = st.session_state.user['username']
         st.sidebar.title(f'Hai, {username}!')
-        opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Edit Rekomendasi', 'Daftar User'])
+        opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User', 'Tambah User'])
 
         # Konten utama
         if opsi == "Beranda":
@@ -106,10 +110,16 @@ def main():
             daftar_rekomendasi()
         elif opsi == 'Riwayat Rekomendasi':
             riwayat_rekomendasi()
+        elif opsi == 'Tambah Rekomendasi':
+            tambah_rekomendasi()
         elif opsi == 'Edit Rekomendasi':
             edit_rekomendasi()
+        elif opsi == 'Hapus Rekomendasi':
+            hapus_rekomendasi()
         elif opsi == 'Daftar User':
             daftar_user()
+        elif opsi == 'Tambah User':
+            tambah_user()
 
         if st.sidebar.button("Logout"):
             # Hapus informasi pengguna dari sesi saat logout
