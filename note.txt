@@ -1,10 +1,13 @@
 Next Tasks 
-1. Fungsi pilih_rekomendasi mengambil data dari SQL bukan CSV
-3. Halaman riwayat_rekomendasi menampilkan riwayat per user
-4. Cari cara agar session state di halaman pilih_rekomendasi otomatis reset ketika berpindah halaman
-5. Insert, Update, Delete Data Warna oleh Admin
-6. Insert, Update, Delete Data User oleh Admin
-7. Halaman Tambah User bergabung dengan Halaman Data User
+1. Insert Data Warna beserta gambar
+2. Update Data Warna
+3. Delete Data Warna
+4. Update Data User
+5. Delete Data User
+6. Perbarui tampilan daftar rekomendasi
 
 
 
+Penanganann lebih lanjut :
+    Import DB Warna
+    Pembuatan kombinasi otomatis

@@ -1,9 +1,8 @@
 import streamlit as st
 import mysql.connector
-import bcrypt
-import pickle
 import os
 import time
+import pickle
 from pathlib import Path
 from app.home import home
 from app.pilih_rekomendasi import pilih_rekomendasi
@@ -13,8 +12,6 @@ from app.tambah_rekomendasi import tambah_rekomendasi
 from app.edit_rekomendasi import edit_rekomendasi
 from app.hapus_rekomendasi import hapus_rekomendasi
 from app.daftar_user import daftar_user
-from app.tambah_user import tambah_user
-
 
 # Fungsi utama
 def main():
@@ -23,14 +20,19 @@ def main():
         layout="wide",  # Set layout to wide mode
         initial_sidebar_state="auto",  # Sidebar initial state
     )
+
+    # Path ke file penyimpanan username
+    user_home_dir = Path.home()
+    file_path = user_home_dir / 'user_login.pkl'
+
     # Inisialisasi session_state
     if 'user' not in st.session_state:
-        st.session_state.user = {'username': None}
+        st.session_state.user = {'username': None, 'role': None}
     if 'login' not in st.session_state:
         st.session_state.login = False
 
+    # Fungsi untuk membuat koneksi ke database
     def create_connection():
-        # Buat koneksi ke database MySQL Anda
         return mysql.connector.connect(
             host='localhost',
             user='root',
@@ -38,32 +40,41 @@ def main():
             database='db_rekomendasi'
         )
 
+    # Fungsi untuk memeriksa login
     def check_login(username, password):
         conn = create_connection()
         cursor = conn.cursor(dictionary=True)
-
         try:
-            # Query untuk mendapatkan pengguna berdasarkan username
-            query = "SELECT username, password FROM user WHERE username = %s"
+            query = "SELECT username, password, role FROM user WHERE username = %s"
             cursor.execute(query, (username,))
             user = cursor.fetchone()
-
-            # Memeriksa apakah pengguna ditemukan dan password cocok
             if user and user["password"] == password:
-                return True
+                return user["role"]
             else:
-                return False
+                return None
         except mysql.connector.Error as err:
             print(f"Error: {err}")
-            return False
+            return None
         finally:
             cursor.close()
             conn.close()
 
+    # Cek apakah file login ada, jika ada baca username dari file
+    if file_path.exists():
+        with open(file_path, 'rb') as file:
+            username = pickle.load(file)
+            conn = create_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT role FROM user WHERE username = %s", (username,))
+            role = cursor.fetchone()["role"]
+            cursor.close()
+            conn.close()
+            st.session_state.user = {'username': username, 'role': role}
+            st.session_state.login = True
+
     # Tampilkan form login jika belum login
     if not st.session_state.login:
         with st.container():
-            # Membuat dua kolom dengan rasio 3:2
             col1, col2 = st.columns([3, 2])
             with col1:
                 st.header('Hai, Selamat Datang di NuansaDesain')
@@ -71,35 +82,30 @@ def main():
                 username = st.text_input("Username:")
                 password = st.text_input("Password:", type="password")
                 if st.button("Login"):
-                    # Periksa kecocokan username dan password
-                    if check_login(username, password):
-                        st.session_state.user = {'username': username}
+                    role = check_login(username, password)
+                    if role:
+                        st.session_state.user = {'username': username, 'role': role}
                         st.session_state.login = True
-
-                        # Simpan email ke dalam file menggunakan pickle (opsional)
-                        try:
-                            user_home_dir = Path.home()
-                            file_path = user_home_dir / 'user_email.pkl'
-                            with open(file_path, 'wb') as file:
-                                pickle.dump(username, file)
-                        except PermissionError:
-                            pass  # Ignore the PermissionError
-
+                        with open(file_path, 'wb') as file:
+                            pickle.dump(username, file)
                         st.success("Login berhasil")
                         time.sleep(2)
                         st.experimental_rerun()
                     else:
                         st.error("Login gagal. Silakan coba lagi.")
-
             with col2:
                 st.image('data/warna/Warni.png')
-
 
     # Jika sudah login, tampilkan halaman setelah login
     if st.session_state.login:
         username = st.session_state.user['username']
+        role = st.session_state.user['role']
         st.sidebar.title(f'Hai, {username}!')
-        opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User', 'Tambah User'])
+        
+        if role == 'Admin':
+            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User'])
+        else:
+            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi'])
 
         # Konten utama
         if opsi == "Beranda":
@@ -118,21 +124,13 @@ def main():
             hapus_rekomendasi()
         elif opsi == 'Daftar User':
             daftar_user()
-        elif opsi == 'Tambah User':
-            tambah_user()
 
         if st.sidebar.button("Logout"):
-            # Hapus informasi pengguna dari sesi saat logout
             st.session_state.login = False
+            st.session_state.user = {'username': None, 'role': None}
             st.success("Logout berhasil!")
-            # Hapus file user_email.pkl saat logout (opsional)
-            try:
-                file_path = Path.home() / 'user_email.pkl'
-                if file_path.exists():
-                    file_path.unlink()
-            except PermissionError:
-                pass  # Ignore the PermissionError
-
+            if file_path.exists():
+                file_path.unlink()
             time.sleep(2)
             st.experimental_rerun()
 

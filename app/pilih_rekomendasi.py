@@ -6,23 +6,25 @@ from mysql.connector import Error
 
 def pilih_rekomendasi():
     st.title('Pilih Rekomendasi Warna')
-    conn = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
-        database='db_rekomendasi'
-    )
+    
+    # Fungsi untuk membuat koneksi ke database
+    def create_connection():
+        return mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='',
+            database='db_rekomendasi'
+        )
+
+    conn = create_connection()
 
     def recommend_color(style_desain_preference, makna_warna_preference, sifat_preference, usia_pengguna_preference, warna_dasar_preference):
-        # Definisikan fungsi untuk mengonversi nilai string yang dipisahkan koma menjadi list
         def convert_to_list(value):
             if isinstance(value, str):
-                # Hapus spasi tambahan dan pisahkan berdasarkan koma
                 return [item.strip() for item in value.split(',')]
             else:
                 return value
 
-        # Membaca data dari file CSV dengan mengonversi nilai yang sesuai menjadi list
         color_data = pd.read_csv("data/kombinasi_warna.csv", converters={
             'style_desain': convert_to_list,
             'makna_warna': convert_to_list,
@@ -31,26 +33,21 @@ def pilih_rekomendasi():
             'warna_dasar': convert_to_list
         })
 
-        # Konversi data menjadi list of tuples
         color_database = color_data.values.tolist()
-
         recommendations = []
         for item in color_database:
-            # Menghitung skor untuk setiap atribut
             style_desain_score = calculate_score(style_desain_preference, item[1])
             makna_warna_score = calculate_score(makna_warna_preference, item[2])
             sifat_score = calculate_score(sifat_preference, item[3])
             usia_pengguna_score = calculate_score(usia_pengguna_preference, item[4])
             warna_dasar_score = calculate_score(warna_dasar_preference, item[5])
             
-            # Menghitung total skor dengan bobot masing-masing
             total_score = (0.35 * style_desain_score +
                            0.25 * makna_warna_score +
                            0.25 * sifat_score +
                            0.1 * usia_pengguna_score +
                            0.05 * warna_dasar_score)
             
-            # Menyimpan skor individual di dalam dictionary
             item_scores = {
                 'style_desain': style_desain_score,
                 'makna_warna': makna_warna_score,
@@ -59,12 +56,9 @@ def pilih_rekomendasi():
                 'warna_dasar': warna_dasar_score
             }
             
-            # Menambahkan rekomendasi ke daftar
             recommendations.append((item[0], total_score, item_scores))
         
-        # Mengurutkan rekomendasi berdasarkan total skor (descending)
         recommendations.sort(key=lambda x: x[1], reverse=True)
-        
         return recommendations
 
     def calculate_score(user_preference, item_attribute):
@@ -76,6 +70,7 @@ def pilih_rekomendasi():
             return 1 if item_attribute in user_preference else 0
     
     def save_to_db(nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+        user = st.session_state.user['username']
         try:
             if conn.is_connected():
                 cursor = conn.cursor()
@@ -85,6 +80,7 @@ def pilih_rekomendasi():
                     CREATE TABLE IF NOT EXISTS riwayat_rekomendasi (
                     id_riwayat INT AUTO_INCREMENT PRIMARY KEY,
                     nama_kombinasi TEXT,
+                    user TEXT,
                     id_warna_1 TEXT,
                     id_warna_2 TEXT,
                     style_desain TEXT,
@@ -98,10 +94,11 @@ def pilih_rekomendasi():
                 
                 # Memasukkan data ke dalam tabel
                 cursor.execute('''
-                INSERT INTO riwayat_rekomendasi (nama_kombinasi, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO riwayat_rekomendasi (nama_kombinasi, user, id_warna_1, id_warna_2, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (
                     nama_kombinasi,
+                    user,
                     id_warna_1,
                     id_warna_2,
                     ', '.join(style_desain),
@@ -112,12 +109,14 @@ def pilih_rekomendasi():
                 ))
                 
                 conn.commit()
+                st.success("Rekomendasi berhasil disimpan ke database.")
+            else:
+                st.error("Koneksi ke database gagal.")
         except Error as e:
             st.error(f"Error: {e}")
         finally:
             if conn.is_connected():
                 cursor.close()
-                conn.close()
 
     current_page = 'pilih_rekomendasi'
     if 'last_page' not in st.session_state or st.session_state.last_page != current_page:
@@ -135,10 +134,7 @@ def pilih_rekomendasi():
     sifat_preference = col1.multiselect("Pilih preferensi sifat:", ["Panas", "Hangat", "Dingin"])
     usia_pengguna_display = col1.multiselect("Pilih preferensi usia pengguna:", ["Anak-anak (5-11 tahun)", "Remaja (12-25 tahun)", "Dewasa (26-45 tahun)", "Lansia (<45 tahun)"])
 
-    # Inisialisasi variabel preferensi usia pengguna
     usia_pengguna_preference = []
-
-    # Mengkonversi pilihan usia pengguna ke format yang diinginkan
     for item in usia_pengguna_display:
         if item == "Anak-anak (5-11 tahun)":
             usia_pengguna_preference.append("A")
@@ -188,7 +184,7 @@ def pilih_rekomendasi():
             if index_rekomendasi <= len(top_recommendations):
                 selected_rekomendasi = top_recommendations[index_rekomendasi-1][0]
                 st.session_state.daftar_rekomendasi.append(selected_rekomendasi)
-                col1.text(f"Rekomendasi '{selected_rekomendasi}' telah disimpan.")
+                col1.success(f"Rekomendasi '{selected_rekomendasi}' telah disimpan.")
                 selected_ids = selected_rekomendasi.split('&')
                 id_warna_1_preference, id_warna_2_preference = selected_ids
                 save_to_db(
@@ -202,3 +198,4 @@ def pilih_rekomendasi():
                     warna_dasar_preference
                 )
                 st.session_state.has_cari_rekomendasi = False
+

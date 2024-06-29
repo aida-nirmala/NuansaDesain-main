@@ -18,47 +18,6 @@ def riwayat_rekomendasi():
         database='db_rekomendasi'
     )
 
-    # Fungsi untuk menyimpan data ke dalam database MySQL
-    def save_to_db(nama_kombinasi, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
-        try:
-            if conn.is_connected():
-                cursor = conn.cursor()
-                
-                # Membuat tabel jika belum ada
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS riwayat_rekomendasi (
-                    id_riwayat INT AUTO_INCREMENT PRIMARY KEY,
-                    nama_kombinasi TEXT,
-                    style_desain TEXT,
-                    makna_warna TEXT,
-                    sifat TEXT,
-                    usia_pengguna TEXT,
-                    warna_dasar TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-                ''')
-                
-                # Memasukkan data ke dalam tabel
-                cursor.execute('''
-                INSERT INTO riwayat_rekomendasi (nama_kombinasi, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ''', (
-                    nama_kombinasi,
-                    ', '.join(style_desain),
-                    ', '.join(makna_warna),
-                    ', '.join(sifat),
-                    ', '.join(usia_pengguna),
-                    ', '.join(warna_dasar)
-                ))
-                
-                conn.commit()
-        except Error as e:
-            st.error(f"Error: {e}")
-        finally:
-            if conn.is_connected():
-                cursor.close()
-                conn.close()
-
     # Menampilkan data dari tabel
     conn = mysql.connector.connect(
         host='localhost',
@@ -68,7 +27,12 @@ def riwayat_rekomendasi():
     )
     if conn.is_connected():
         mycursor = conn.cursor()
-        mycursor.execute("SELECT * FROM riwayat_rekomendasi")
+        role = st.session_state.user['role']
+        username = st.session_state.user['username']
+        if role == 'Admin' :
+            mycursor.execute("SELECT * FROM riwayat_rekomendasi")
+        else :
+            mycursor.execute(f"SELECT * FROM riwayat_rekomendasi WHERE user = '{username}'")
         result = mycursor.fetchall()
 
         columns = [i[0] for i in mycursor.description]
