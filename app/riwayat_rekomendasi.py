@@ -44,7 +44,7 @@ def riwayat_rekomendasi():
 
         # Merename kolom DataFrame
         df = df.rename(columns={
-            'id_riwayat': 'Id',
+            'id_riwayat': 'ID',
             'nama_kombinasi': 'Kombinasi Warna',
             'style_desain': 'Style Desain',
             'makna_warna': 'Makna Warna',
