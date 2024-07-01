@@ -12,6 +12,7 @@ from app.tambah_rekomendasi import tambah_rekomendasi
 from app.edit_rekomendasi import edit_rekomendasi
 from app.hapus_rekomendasi import hapus_rekomendasi
 from app.daftar_user import daftar_user
+from app.daftar_user_baru import daftar_user_baru
 
 # Fungsi utama
 def main():
@@ -103,7 +104,7 @@ def main():
         st.sidebar.title(f'Hai, {username}!')
         
         if role == 'Admin':
-            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User'])
+            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User', 'Daftar User Baru'])
         else:
             opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi'])
 
@@ -124,6 +125,8 @@ def main():
             hapus_rekomendasi()
         elif opsi == 'Daftar User':
             daftar_user()
+        elif opsi == 'Daftar User Baru':
+            daftar_user_baru()
 
         if st.sidebar.button("Logout"):
             st.session_state.login = False
