@@ -1,7 +1,7 @@
 import streamlit as st
 from app.home import home
 from app.pilih_rekomendasi import pilih_rekomendasi
-from app.daftar_rekomendasi import daftar_rekomendasi
+from app.daftar_rekomendasi_admin import daftar_rekomendasi
 from app.riwayat_rekomendasi import riwayat_rekomendasi
 from app.edit_rekomendasi import edit_rekomendasi
 

@@ -55,9 +55,48 @@ def data_warna():
 
         # Adding description after the title
         st.markdown("""
-            <p>Berikut adalah daftar semua warna dasar yang terdaftar dalam sistem rekomendasi warna.</p>
+            <p>Berikut adalah daftar semua pengguna yang terdaftar dalam sistem rekomendasi warna.</p>
         """, unsafe_allow_html=True)
 
+        # Create header columns
+        header_cols = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
+        
+        headers = ["ID", "Gambar", "Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar", "Aksi"]
+        for header, col in zip(headers, header_cols):
+            col.write(f"**{header}**")
+
+        df_asli = df_asli.drop(columns=['Gambar'])
+
+        def get_image_base64(warna):
+            path_to_image = f'warna/{warna}.png'
+            with open(path_to_image, 'rb') as f:
+                image_bytes = f.read()
+            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+            return image_base64
+
+        df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/png;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
+
+        for index, row in df_asli.iterrows():
+            col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
+            col1.write(row['ID'])
+            # col2.write(row['Gambar'])
+            # col2.markdown(row['Gambar'].to_html(escape=False, index=False), unsafe_allow_html=True)
+            col2.markdown(row['Gambar'], unsafe_allow_html=True)
+            col3.write(row['Warna'])
+            col4.write(row['Style Desain'])
+            col5.write(row['Makna Warna'])
+            col6.write(row['Sifat'])
+            col7.write(row['Usia Pengguna'])
+            col8.write(row['Warna Dasar'])
+            if col9.button("Hapus", key=f"delete_{row['ID']}"):
+                st.session_state['delete_id'] = row['ID']
+            
+        if 'delete_id' not in st.session_state:
+            st.session_state['delete_id'] = None
+
+        if 'confirm_delete' not in st.session_state:
+            st.session_state['confirm_delete'] = False
+        
         def delete_user_from_db(id_warna):
             try:
                 conn = mysql.connector.connect(
@@ -100,46 +139,37 @@ def data_warna():
                     st.session_state['delete_id'] = None
                     st.session_state['confirm_delete'] = False
 
-        # Create header columns
-        header_cols = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
-        
-        headers = ["ID", "Gambar", "Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar", "Aksi"]
-        for header, col in zip(headers, header_cols):
-            col.write(f"**{header}**")
+    st.header("Data Warna")
 
-        df_asli = df_asli.drop(columns=['Gambar'])
+    # Menambahkan barisan atau informasi tambahan
+    st.markdown("""
+         <p>Berikut adalah daftar rekomendasi warna berdasarkan data yang tersedia.</p>
+    """, unsafe_allow_html=True)
 
-        def get_image_base64(warna):
-            path_to_image = f'warna/{warna}.png'
-            with open(path_to_image, 'rb') as f:
-                image_bytes = f.read()
-            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-            return image_base64
+    query_data_warna = "SELECT * FROM data_warna"
 
-        df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/png;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
+    # Fetch data from database
+    df_asli = fetch_data_from_db(query_data_warna)
 
-        for index, row in df_asli.iterrows():
-            col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
-            col1.write(row['ID'])
-            # col2.write(row['Gambar'])
-            # col2.markdown(row['Gambar'].to_html(escape=False, index=False), unsafe_allow_html=True)
-            col2.markdown(row['Gambar'], unsafe_allow_html=True)
-            col3.write(row['Warna'])
-            col4.write(row['Style Desain'])
-            col5.write(row['Makna Warna'])
-            col6.write(row['Sifat'])
-            col7.write(row['Usia Pengguna'])
-            col8.write(row['Warna Dasar'])
-            if col9.button("Hapus", key=f"delete_{row['ID']}"):
-                st.session_state['delete_id'] = row['ID']
-            
-        if 'delete_id' not in st.session_state:
-            st.session_state['delete_id'] = None
+    # Rename columns as needed
+    df_asli.columns = ["ID", "Gambar", "Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
+    df_asli = df_asli.drop(columns=['Gambar'])
 
-        if 'confirm_delete' not in st.session_state:
-            st.session_state['confirm_delete'] = False
-        
+    # Menambahkan kolom Gambar dengan format base64
+    def get_image_base64(warna):
+        path_to_image = f'warna/{warna}.png'
+        with open(path_to_image, 'rb') as f:
+            image_bytes = f.read()
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        return image_base64
 
+    df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/png;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
+
+    # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
+    columns_order = ['ID', 'Gambar'] + df_asli.columns[1:7].tolist()
+    df_asli = df_asli[columns_order]
+
+    st.markdown(df_asli.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 def tambah():
     st.header('Tambah Data Warna')
@@ -277,24 +307,10 @@ def data_kombinasi():
     query_data_kombinasi = "SELECT * FROM data_kombinasi"
     df_kombinasi = fetch_data_from_db(query_data_kombinasi)
 
-    # Rename columns as needed
-    df_kombinasi.columns = ["ID", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
-
-    # Adding description after the title
-    st.markdown("""
-        <p>Berikut adalah daftar semua warna kombinasi yang terdaftar dalam sistem rekomendasi warna.</p>
-    """, unsafe_allow_html=True)
-
     # Rename columns for data_kombinasi
     df_kombinasi.columns = ["ID", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
 
-    # Create header columns
-    header_cols = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
-    
-    headers = ["ID", "Gambar", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar", "Aksi"]
-    for header, col in zip(headers, header_cols):
-        col.write(f"**{header}**")
-    
+    # Menambahkan kolom Gambar dengan dua gambar dalam satu kolom
     def get_combined_image_base64(kombinasi_warna):
         warna_1, warna_2 = kombinasi_warna.split(' & ')
         img1 = get_image_base64(warna_1)
@@ -304,37 +320,11 @@ def data_kombinasi():
 
     df_kombinasi['Gambar'] = df_kombinasi['Kombinasi Warna'].apply(get_combined_image_base64)
 
-    for index, row in df_kombinasi.iterrows():
-        col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
-        col1.write(row['ID'])
-        # col2.write(row['Gambar'])
-        # col2.markdown(row['Gambar'].to_html(escape=False, index=False), unsafe_allow_html=True)
-        col2.markdown(row['Gambar'], unsafe_allow_html=True)
-        col3.write(row['Kombinasi Warna'])
-        col4.write(row['Style Desain'])
-        col5.write(row['Makna Warna'])
-        col6.write(row['Sifat'])
-        col7.write(row['Usia Pengguna'])
-        col8.write(row['Warna Dasar'])
-        if col9.button("Hapus", key=f"delete_{row['ID']}"):
-            st.session_state['delete_id'] = row['ID']
+    # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
+    columns_order = ['ID', 'Gambar'] + df_kombinasi.columns[1:7].tolist()
+    df_kombinasi = df_kombinasi[columns_order]
 
-
-    # # Menambahkan kolom Gambar dengan dua gambar dalam satu kolom
-    # def get_combined_image_base64(kombinasi_warna):
-    #     warna_1, warna_2 = kombinasi_warna.split(' & ')
-    #     img1 = get_image_base64(warna_1)
-    #     img2 = get_image_base64(warna_2)
-    #     return f'<img src="data:image/png;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
-    #            f'<img src="data:image/png;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
-
-    # df_kombinasi['Gambar'] = df_kombinasi['Kombinasi Warna'].apply(get_combined_image_base64)
-
-    # # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
-    # columns_order = ['ID', 'Gambar'] + df_kombinasi.columns[1:7].tolist()
-    # df_kombinasi = df_kombinasi[columns_order]
-
-    # st.markdown(df_kombinasi.to_html(escape=False, index=False), unsafe_allow_html=True)
+    st.markdown(df_kombinasi.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     daftar_rekomendasi()

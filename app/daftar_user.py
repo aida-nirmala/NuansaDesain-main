@@ -47,7 +47,7 @@ def delete_user_from_db(user_id):
             st.success("Data user berhasil dihapus dari database.")
             st.session_state['delete_id'] = None  # Reset delete_id after deletion
             time.sleep(2)
-            st.experimental_rerun()
+            st.experimental_rerun()   
     except Error as e:
         st.error(f"Error: {e}")
     finally:
@@ -79,7 +79,7 @@ def update_user_in_db(user_id, new_username, new_role, new_password):
         if conn.is_connected():
             cursor.close()
             conn.close()
-
+  
 # Function to save new user to the database
 def save_user_to_db(username, role, password):
     try:
@@ -152,6 +152,15 @@ def daftar_user():
     # Function to display user list
     def data_user():
         col_data.header("Daftar User")
+        with col_data.popover("Tambah Data User"):
+            st.markdown("Tambah Data User")
+            username_preference = st.text_input("Masukkan username:")
+            role_preference = st.selectbox("Pilih role:", ['Klien', 'Admin'])
+            password_preference = st.text_input("Masukkan password:", type="password")
+
+            if st.button('Simpan'):
+                # Call function to save data to database
+                save_user_to_db(username_preference, role_preference, password_preference)
 
         # Fetch data from database
         query_user = "SELECT id_user, username, role, password FROM user"
@@ -222,4 +231,3 @@ def daftar_user():
     elif current_tab == "Tambah Data User":
         tambah_data_user()
 
-daftar_user()

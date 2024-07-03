@@ -1,12 +1,14 @@
 Next Tasks 
-1. Insert Data Warna beserta gambar
-2. Update Data Warna
-3. Delete Data Warna
-4. Update Data User
-5. Delete Data User
-6. Perbarui tampilan daftar rekomendasi
-
-
+1. Tombol Edit Data Warna
+2. Tombol Hapus Data kombinasi
+4. Konfirmasi Hapus User di atas
+5. Hapus Data Warna sekaligus gambar warna nya di folder
+7. Klik tombol Batal Hapus hanya sekali saja di Warna
+8. Klik tombol Batal Hapus hanya sekali saja di kombinasi
+9. Gambar yang diupload di data warna masuk ke folder data .jpg
+10. Tampilan data warna user dan admin berbeda
+11. Gambar pada Data Warna dan Kombinasi disamakan mengambil dari folder data .jpg
+12. Hilangkan sidebar tambah data user 
 
 Penanganann lebih lanjut :
     Import DB Warna
