@@ -5,9 +5,6 @@ from mysql.connector import Error
 import base64
 
 def daftar_rekomendasi():
-    st.title('Daftar Rekomendasi Warna')
-
-def daftar_rekomendasi():
 
     # Pilihan tab
     tabs = ["Data Warna", "Tambah Data Warna", "Data Kombinasi"]
@@ -57,7 +54,8 @@ def data_warna():
     df_asli = fetch_data_from_db(query_data_warna)
 
     # Rename columns as needed
-    df_asli.columns = ["ID", "Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
+    df_asli.columns = ["ID", "Gambar", "Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
+    df_asli = df_asli.drop(columns=['Gambar'])
 
     # Menambahkan kolom Gambar dengan format base64
     def get_image_base64(warna):
@@ -76,8 +74,105 @@ def data_warna():
     st.markdown(df_asli.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 def tambah():
-    st.header("Tambah Data Warna")
-    st.write("Ini adalah konten untuk Halaman 2.")
+    st.header('Tambah Data Warna')
+    
+    # Fungsi untuk membuat koneksi ke database
+    def create_connection():
+        return mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='',
+            database='db_rekomendasi'
+        )
+
+    conn = create_connection()
+
+    def save_to_db(gambar_filename, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+        try:
+            if conn.is_connected():
+                cursor = conn.cursor()
+                
+                # Memasukkan data ke dalam tabel
+                cursor.execute('''
+                INSERT INTO data_warna (gambar, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    gambar_filename if gambar_filename else None,
+                    warna,
+                    ', '.join(style_desain),
+                    ', '.join(makna_warna),
+                    ', '.join(sifat),
+                    ', '.join(usia_pengguna),
+                    ', '.join(warna_dasar)
+                ))
+                
+                conn.commit()
+                st.success("Data Warna Baru berhasil disimpan ke database.")
+            else:
+                st.error("Koneksi ke database gagal.")
+        except Error as e:
+            st.error(f"Error: {e}")
+        finally:
+            if conn.is_connected():
+                cursor.close()
+
+    def save_image(gambar):
+        # Simpan gambar ke direktori 'gambar'
+        try:
+            if not os.path.exists('gambar'):
+                os.makedirs('gambar')
+            
+            # Simpan gambar dengan nama yang unik atau sesuai input
+            gambar_path = os.path.join('gambar', gambar.name)
+            with open(gambar_path, "wb") as f:
+                f.write(gambar.getbuffer())
+            
+            st.success(f"Gambar '{gambar.name}' berhasil disimpan.")
+            return gambar.name
+        except Exception as e:
+            st.error(f"Error saat menyimpan gambar: {e}")
+            return None
+    
+    # Input untuk gambar
+    gambar = st.file_uploader("Pilih gambar untuk warna:")
+    
+    if gambar is not None:
+        st.subheader("Gambar yang Dipilih")
+        st.image(gambar, caption='Gambar yang Dipilih', use_column_width=True)
+    
+    warna = st.text_input("Masukkan nama warna:")
+    style_desain_preference = st.multiselect("Pilih preferensi style desain:", ["American Classic", "Tradisional", "Modern", "Industrial", "Alam"])
+    makna_warna_preference = st.multiselect("Pilih preferensi makna warna:", ["Suci", "Kekuatan", "Keceriaan", "Keberanian", "Keagungan", "Santai", "Ketenangan", "Kenyamanan", "Kerendahan hati", "Kewanitaan", "Kejantanan", "Kehangatan"])
+    sifat_preference = st.multiselect("Pilih preferensi sifat:", ["Panas", "Hangat", "Dingin"])
+    usia_pengguna_display = st.multiselect("Pilih preferensi usia pengguna:", ["Anak-anak (5-11 tahun)", "Remaja (12-25 tahun)", "Dewasa (26-45 tahun)", "Lansia (<45 tahun)"])
+
+    usia_pengguna_preference = []
+    for item in usia_pengguna_display:
+        if item == "Anak-anak (5-11 tahun)":
+            usia_pengguna_preference.append("A")
+        elif item == "Remaja (12-25 tahun)":
+            usia_pengguna_preference.append("R")
+        elif item == "Dewasa (26-45 tahun)":
+            usia_pengguna_preference.append("D")
+        elif item == "Lansia (<45 tahun)":
+            usia_pengguna_preference.append("L")
+
+    warna_dasar_preference = st.multiselect("Pilih preferensi warna dasar:", ["Putih", "Hitam", "Merah", "Kuning", "Biru"])
+
+    if st.button('Simpan Warna'):
+        gambar_filename = None
+        if gambar is not None:
+            gambar_filename = save_image(gambar)
+        
+        save_to_db(
+            gambar_filename,
+            warna,
+            style_desain_preference,
+            makna_warna_preference,
+            sifat_preference,
+            usia_pengguna_preference,
+            warna_dasar_preference
+        )
 
 def data_kombinasi():
     def fetch_data_from_db(query):
