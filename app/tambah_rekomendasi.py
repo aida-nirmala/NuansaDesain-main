@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import os
 import mysql.connector
 from mysql.connector import Error
@@ -18,14 +17,10 @@ def tambah_rekomendasi():
 
     conn = create_connection()
 
-    def save_to_db(gambar_filename, nama, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+    def save_to_db(gambar_filename, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
         try:
             if conn.is_connected():
                 cursor = conn.cursor()
-                
-                # Menyimpan gambar ke direktori yang sesuai
-                if gambar_filename:
-                    save_image(gambar_filename)
                 
                 # Memasukkan data ke dalam tabel
                 cursor.execute('''
@@ -33,7 +28,7 @@ def tambah_rekomendasi():
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ''', (
                     gambar_filename if gambar_filename else None,
-                    nama,
+                    warna,
                     ', '.join(style_desain),
                     ', '.join(makna_warna),
                     ', '.join(sifat),
@@ -58,7 +53,8 @@ def tambah_rekomendasi():
                 os.makedirs('gambar')
             
             # Simpan gambar dengan nama yang unik atau sesuai input
-            with open(os.path.join('gambar', gambar.name), "wb") as f:
+            gambar_path = os.path.join('gambar', gambar.name)
+            with open(gambar_path, "wb") as f:
                 f.write(gambar.getbuffer())
             
             st.success(f"Gambar '{gambar.name}' berhasil disimpan.")
@@ -77,7 +73,7 @@ def tambah_rekomendasi():
         st.subheader("Gambar yang Dipilih")
         st.image(gambar, caption='Gambar yang Dipilih', use_column_width=True)
     
-    nama = st.text_input("Masukkan nama warna:")
+    warna = st.text_input("Masukkan nama warna:")
     style_desain_preference = st.multiselect("Pilih preferensi style desain:", ["American Classic", "Tradisional", "Modern", "Industrial", "Alam"])
     makna_warna_preference = st.multiselect("Pilih preferensi makna warna:", ["Suci", "Kekuatan", "Keceriaan", "Keberanian", "Keagungan", "Santai", "Ketenangan", "Kenyamanan", "Kerendahan hati", "Kewanitaan", "Kejantanan", "Kehangatan"])
     sifat_preference = st.multiselect("Pilih preferensi sifat:", ["Panas", "Hangat", "Dingin"])
@@ -103,7 +99,7 @@ def tambah_rekomendasi():
         
         save_to_db(
             gambar_filename,
-            nama,
+            warna,
             style_desain_preference,
             makna_warna_preference,
             sifat_preference,
