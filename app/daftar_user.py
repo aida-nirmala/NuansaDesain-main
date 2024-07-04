@@ -79,7 +79,7 @@ def update_user_in_db(user_id, new_username, new_role, new_password):
         if conn.is_connected():
             cursor.close()
             conn.close()
-  
+
 # Function to save new user to the database
 def save_user_to_db(username, role, password):
     try:
@@ -104,12 +104,8 @@ def save_user_to_db(username, role, password):
             cursor.close()
             conn.close()
 
-# Main function to handle page selection
+# Function to display user list and add/edit functionalities
 def daftar_user():
-    # List of tabs
-    tabs = ["Daftar User", "Tambah Data User"]
-    # Selectbox to choose page
-    current_tab = st.selectbox("Pilih Halaman", tabs)
     col_data, kosong, col_edit = st.columns([16, 1, 6])
 
     # Function to edit user
@@ -125,29 +121,17 @@ def daftar_user():
             role = user_data.at[0, 'role']
             password = user_data.at[0, 'password']
 
-            new_username = col_edit.text_input("Username:", value=username)
-            new_role = col_edit.selectbox("Role:", ['Klien', 'Admin'], index=['Klien', 'Admin'].index(role))
-            new_password = col_edit.text_input("Password:", value=password, type="password")
+            new_username = col_edit.text_input("Username:", value=username, key=f"username_{user_id}")
+            new_role = col_edit.selectbox("Role:", ['Klien', 'Admin'], index=['Klien', 'Admin'].index(role), key=f"role_{user_id}")
+            new_password = col_edit.text_input("Password:", value=password, type="password", key=f"password_{user_id}")
 
             col_buttons = col_edit.columns([1, 3, 1])  # Add column for buttons (cancel, save)
-            if col_buttons[1].button("Simpan"):
+            if col_buttons[1].button("Simpan", key=f"simpan_{user_id}"):
                 update_user_in_db(user_id, new_username, new_role, new_password)
-            if col_buttons[2].button("✖️"):
+            if col_buttons[2].button("✖️", key=f"cancel_{user_id}"):
                 st.session_state['edit_id'] = None  # Reset edit_id to hide form
         else:
             st.error("User tidak ditemukan.")
-
-    # Function to add new user data
-    def tambah_data_user():
-        st.header("Tambah Data User")
-
-        username_preference = st.text_input("Masukkan username:")
-        role_preference = st.selectbox("Pilih role:", ['Klien', 'Admin'])
-        password_preference = st.text_input("Masukkan password:", type="password")
-
-        if st.button('Simpan'):
-            # Call function to save data to database
-            save_user_to_db(username_preference, role_preference, password_preference)
 
     # Function to display user list
     def data_user():
@@ -211,23 +195,19 @@ def daftar_user():
             if not st.session_state['confirm_delete']:
                 st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Ya"):
+                if col_yes.button("Ya", key="confirm_yes"):
                     delete_user_from_db(st.session_state['delete_id'])
-                if col_no.button("Batal"):
+                if col_no.button("Batal", key="confirm_no"):
                     st.session_state['delete_id'] = None
                     st.session_state['confirm_delete'] = False
             else:
                 st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
                 col_yes, col_no = st.columns(2)
-                if col_yes.button("Ya"):
+                if col_yes.button("Ya", key="confirm_yes"):
                     delete_user_from_db(st.session_state['delete_id'])
-                if col_no.button("Batal"):
+                if col_no.button("Batal", key="confirm_no"):
                     st.session_state['delete_id'] = None
                     st.session_state['confirm_delete'] = False
 
-    # Display content based on tab selection
-    if current_tab == "Daftar User":
-        data_user()
-    elif current_tab == "Tambah Data User":
-        tambah_data_user()
+    data_user()
 

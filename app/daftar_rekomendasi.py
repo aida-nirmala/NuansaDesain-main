@@ -42,6 +42,7 @@ def data_warna():
                 cursor.close()
                 conn.close()
         return df
+
     query_user = "SELECT * FROM data_warna"
     df_asli = fetch_data_from_db(query_user)
     st.header("Data Warna")
@@ -82,6 +83,13 @@ def data_warna():
                     cursor.close()
                     conn.close()
         
+        # Inisialisasi session_state
+        if 'delete_id' not in st.session_state:
+            st.session_state['delete_id'] = None
+
+        if 'confirm_delete' not in st.session_state:
+            st.session_state['confirm_delete'] = False
+
         if st.session_state['delete_id'] is not None:
             if not st.session_state['confirm_delete']:
                 st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
@@ -110,19 +118,17 @@ def data_warna():
         df_asli = df_asli.drop(columns=['Gambar'])
 
         def get_image_base64(warna):
-            path_to_image = f'warna/{warna}.png'
+            path_to_image = f'data/warna/{warna}.jpg'
             with open(path_to_image, 'rb') as f:
                 image_bytes = f.read()
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             return image_base64
 
-        df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/png;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
+        df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/jpg;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
 
         for index, row in df_asli.iterrows():
             col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
             col1.write(row['ID'])
-            # col2.write(row['Gambar'])
-            # col2.markdown(row['Gambar'].to_html(escape=False, index=False), unsafe_allow_html=True)
             col2.markdown(row['Gambar'], unsafe_allow_html=True)
             col3.write(row['Warna'])
             col4.write(row['Style Desain'])
@@ -132,14 +138,6 @@ def data_warna():
             col8.write(row['Warna Dasar'])
             if col9.button("Hapus", key=f"delete_{row['ID']}"):
                 st.session_state['delete_id'] = row['ID']
-            
-        if 'delete_id' not in st.session_state:
-            st.session_state['delete_id'] = None
-
-        if 'confirm_delete' not in st.session_state:
-            st.session_state['confirm_delete'] = False
-        
-
 
 def tambah():
     st.header('Tambah Data Warna')
@@ -267,7 +265,7 @@ def data_kombinasi():
 
     # Menambahkan kolom Gambar dengan format base64
     def get_image_base64(warna):
-        path_to_image = f'warna/{warna}.png'
+        path_to_image = f'data/warna/{warna}.jpg'
         with open(path_to_image, 'rb') as f:
             image_bytes = f.read()
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -285,6 +283,55 @@ def data_kombinasi():
         <p>Berikut adalah daftar semua warna kombinasi yang terdaftar dalam sistem rekomendasi warna.</p>
     """, unsafe_allow_html=True)
 
+    def delete_user_from_db(id_kombinasi):
+        try:
+            conn = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='db_rekomendasi'
+            )
+            if conn.is_connected():
+                cursor = conn.cursor()
+                delete_query = "DELETE FROM data_kombinasi WHERE id_kombinasi = %s"
+                cursor.execute(delete_query, (id_kombinasi,))
+                conn.commit()
+                st.success("Data kombinasi berhasil dihapus dari database.")
+                st.session_state['delete_id'] = None  # Reset delete_id after deletion
+                time.sleep(2)
+                st.experimental_rerun()   
+        except Error as e:
+            st.error(f"Error: {e}")
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+    
+    # Inisialisasi session_state
+    if 'delete_id' not in st.session_state:
+        st.session_state['delete_id'] = None
+
+    if 'confirm_delete' not in st.session_state:
+        st.session_state['confirm_delete'] = False
+
+    if st.session_state['delete_id'] is not None:
+        if not st.session_state['confirm_delete']:
+            st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
+            col_yes, col_no = st.columns(2)
+            if col_yes.button("Ya"):
+                delete_user_from_db(st.session_state['delete_id'])
+            if col_no.button("Batal"):
+                st.session_state['delete_id'] = None
+                st.session_state['confirm_delete'] = False
+        else:
+            st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
+            col_yes, col_no = st.columns(2)
+            if col_yes.button("Ya"):
+                delete_user_from_db(st.session_state['delete_id'])
+            if col_no.button("Batal"):
+                st.session_state['delete_id'] = None
+                st.session_state['confirm_delete'] = False
+
     # Rename columns for data_kombinasi
     df_kombinasi.columns = ["ID", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
 
@@ -299,16 +346,14 @@ def data_kombinasi():
         warna_1, warna_2 = kombinasi_warna.split(' & ')
         img1 = get_image_base64(warna_1)
         img2 = get_image_base64(warna_2)
-        return f'<img src="data:image/png;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
-               f'<img src="data:image/png;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
+        return f'<img src="data:image/jpg;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
+               f'<img src="data:image/jpg;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
 
     df_kombinasi['Gambar'] = df_kombinasi['Kombinasi Warna'].apply(get_combined_image_base64)
 
     for index, row in df_kombinasi.iterrows():
         col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
         col1.write(row['ID'])
-        # col2.write(row['Gambar'])
-        # col2.markdown(row['Gambar'].to_html(escape=False, index=False), unsafe_allow_html=True)
         col2.markdown(row['Gambar'], unsafe_allow_html=True)
         col3.write(row['Kombinasi Warna'])
         col4.write(row['Style Desain'])
@@ -318,23 +363,6 @@ def data_kombinasi():
         col8.write(row['Warna Dasar'])
         if col9.button("Hapus", key=f"delete_{row['ID']}"):
             st.session_state['delete_id'] = row['ID']
-
-
-    # # Menambahkan kolom Gambar dengan dua gambar dalam satu kolom
-    # def get_combined_image_base64(kombinasi_warna):
-    #     warna_1, warna_2 = kombinasi_warna.split(' & ')
-    #     img1 = get_image_base64(warna_1)
-    #     img2 = get_image_base64(warna_2)
-    #     return f'<img src="data:image/png;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
-    #            f'<img src="data:image/png;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
-
-    # df_kombinasi['Gambar'] = df_kombinasi['Kombinasi Warna'].apply(get_combined_image_base64)
-
-    # # Mengurutkan kolom untuk menempatkan kolom Gambar di posisi kedua
-    # columns_order = ['ID', 'Gambar'] + df_kombinasi.columns[1:7].tolist()
-    # df_kombinasi = df_kombinasi[columns_order]
-
-    # st.markdown(df_kombinasi.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     daftar_rekomendasi()

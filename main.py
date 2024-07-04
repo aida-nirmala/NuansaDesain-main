@@ -8,7 +8,6 @@ from app.home import home
 from app.pilih_rekomendasi import pilih_rekomendasi
 from app.daftar_rekomendasi import daftar_rekomendasi
 from app.riwayat_rekomendasi import riwayat_rekomendasi
-from app.tambah_rekomendasi import tambah_rekomendasi
 from app.edit_rekomendasi import edit_rekomendasi
 from app.hapus_rekomendasi import hapus_rekomendasi
 from app.daftar_user import daftar_user
@@ -103,7 +102,7 @@ def main():
         st.sidebar.title(f'Hai, {username}!')
         
         if role == 'Admin':
-            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Tambah Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User'])
+            opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi', 'Edit Rekomendasi', 'Hapus Rekomendasi', 'Daftar User'])
         else:
             opsi = st.sidebar.radio("Pilih Halaman", ['Beranda', 'Pilih Rekomendasi', 'Daftar Rekomendasi', 'Riwayat Rekomendasi'])
 
@@ -116,8 +115,6 @@ def main():
             daftar_rekomendasi()
         elif opsi == 'Riwayat Rekomendasi':
             riwayat_rekomendasi()
-        elif opsi == 'Tambah Rekomendasi':
-            tambah_rekomendasi()
         elif opsi == 'Edit Rekomendasi':
             edit_rekomendasi()
         elif opsi == 'Hapus Rekomendasi':

@@ -7,8 +7,8 @@ Next Tasks
 8. Klik tombol Batal Hapus hanya sekali saja di kombinasi
 9. Gambar yang diupload di data warna masuk ke folder data .jpg
 10. Tampilan data warna user dan admin berbeda
-11. Gambar pada Data Warna dan Kombinasi disamakan mengambil dari folder data .jpg
-12. Hilangkan sidebar tambah data user 
+11. Gambar pada Data Warna dan Kombinasi disamakan mengambil dari folder data .jpg (done)
+12. Hilangkan sidebar tambah data user (done)
 
 Penanganann lebih lanjut :
     Import DB Warna
