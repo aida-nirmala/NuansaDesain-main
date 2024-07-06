@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Generation Time: Jun 03, 2024 at 04:40 PM
--- Server version: 5.7.39
--- PHP Version: 8.1.10
+-- Host: 127.0.0.1
+-- Waktu pembuatan: 06 Jul 2024 pada 03.58
+-- Versi server: 10.4.28-MariaDB
+-- Versi PHP: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,21 +24,21 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `data_kombinasi`
+-- Struktur dari tabel `data_kombinasi`
 --
 
 CREATE TABLE `data_kombinasi` (
   `id_kombinasi` int(11) NOT NULL,
-  `kombinasi_warna` text,
-  `style_desain` text,
-  `makna_warna` text,
-  `sifat` text,
-  `usia_pengguna` text,
-  `warna_dasar` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `kombinasi_warna` text DEFAULT NULL,
+  `style_desain` text DEFAULT NULL,
+  `makna_warna` text DEFAULT NULL,
+  `sifat` text DEFAULT NULL,
+  `usia_pengguna` text DEFAULT NULL,
+  `warna_dasar` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `data_kombinasi`
+-- Dumping data untuk tabel `data_kombinasi`
 --
 
 INSERT INTO `data_kombinasi` (`id_kombinasi`, `kombinasi_warna`, `style_desain`, `makna_warna`, `sifat`, `usia_pengguna`, `warna_dasar`) VALUES
@@ -482,124 +482,175 @@ INSERT INTO `data_kombinasi` (`id_kombinasi`, `kombinasi_warna`, `style_desain`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `data_warna`
+-- Struktur dari tabel `data_warna`
 --
 
 CREATE TABLE `data_warna` (
   `id_warna` int(11) NOT NULL,
-  `warna` text,
-  `style_desain` text,
-  `makna_warna` text,
-  `sifat` text,
-  `usia_pengguna` text,
-  `warna_dasar` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `gambar` varchar(50) NOT NULL,
+  `warna` text DEFAULT NULL,
+  `style_desain` text DEFAULT NULL,
+  `makna_warna` text DEFAULT NULL,
+  `sifat` text DEFAULT NULL,
+  `usia_pengguna` text DEFAULT NULL,
+  `warna_dasar` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `data_warna`
+-- Dumping data untuk tabel `data_warna`
 --
 
-INSERT INTO `data_warna` (`id_warna`, `warna`, `style_desain`, `makna_warna`, `sifat`, `usia_pengguna`, `warna_dasar`) VALUES
-(1, 'Putih', 'American Classic, Tradisional, Industrial, Minimalis, Alam', 'Suci', 'Dingin', 'R, L', 'Putih'),
-(2, 'Hitam', 'Industrial', 'Kekuatan', 'Panas', 'R, D', 'Hitam'),
-(3, 'Kuning', 'American Classic', 'Keceriaan', 'Panas', 'A, R, D', 'Kuning'),
-(4, 'Merah', 'American Classic', 'Keberanian', 'Panas', 'A, R, D', 'Merah'),
-(5, 'Ungu', 'Modern', 'Keagungan', 'Dingin', 'A, R, D', 'Merah, Biru'),
-(6, 'Hijau', 'Alam', 'Santai', 'Dingin', 'A, R, D, L', 'Kuning, Biru'),
-(7, 'Biru', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru'),
-(8, 'Oren', 'American Classic', 'Keceriaan', 'Panas', 'A, R, D, L', 'Merah, Kuning'),
-(9, 'Coklat', 'Tradisional, Alam', 'Kenyamanan', 'Hangat', 'R, L', 'Merah, Biru, Kuning'),
-(10, 'Abu-Abu', 'Industrial', 'Kerendahan hati', 'Dingin', 'R, D, L', 'Hitam, Putih'),
-(11, 'Merah muda', 'Modern', 'Kewanitaan', 'Panas', 'A, R, D', 'Merah, Putih'),
-(12, 'Merah tua', 'Modern', 'Keberanian', 'Panas', 'R, L', 'Merah, Hitam'),
-(13, 'Biru tua', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Hitam'),
-(14, 'Abu-Abu tua', 'Industrial', 'Kerendahan hati', 'Panas', 'D, R, L', 'Putih, Hitam'),
-(15, 'Hijau tua', 'Alam', 'Santai', 'Dingin', 'L', 'Hijau, Hitam'),
-(16, 'Coklat tua', 'Tradisional, Alam', 'Kejantanan', 'Hangat', 'L', 'Merah, Biru, Kuning'),
-(17, 'Coklat muda', 'American Classic, Tradisional, Alam', 'Kejantanan', 'Hangat', 'L', 'Merah, Biru, Kuning'),
-(18, 'Biru muda', 'American Classic, Alam', 'Kewanitaan', 'Dingin', 'A, R, D, L', 'Biru, Putih'),
-(19, 'Abu-Abu muda', 'Industrial', 'Kerendahan hati', 'Dingin', 'R, D, L', 'Hitam, Putih'),
-(20, 'Hijau muda', 'American Classic, Alam', 'Kewanitaan', 'Hangat', 'A, R, D, L', 'Biru, Kuning'),
-(21, 'Magenta', 'American Classic, Modern', 'Kewanitaan', 'Dingin', 'A, R, D, L', 'Biru, Merah, Putih'),
-(22, 'Emas', 'American Classic', 'Keagungan', 'Panas', 'A, R, D, L', 'Merah, Biru, Kuning'),
-(23, 'Biru navy', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Hitam'),
-(24, 'Merah maroon', 'Tradisional, Alam', 'Keceriaan', 'Panas', 'R, D, L', 'Merah, Biru, Kuning'),
-(25, 'Peach', 'American Classic, Modern', 'Kewanitaan', 'Hangat', 'R, D, L', 'Merah, Kuning, Putih'),
-(26, 'Silver', 'Industrial', 'Ketenangan', 'Dingin', 'R, D, L', 'Hitam, Putih'),
-(27, 'Coral', 'American Classic', 'Kewanitaan', 'Panas', 'A, R, D, L', 'Merah, Kuning'),
-(28, 'Biru air', 'American Classic, Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Putih'),
-(29, 'Krem', 'American Classic', 'Kehangatan', 'Hangat', 'R, D, L', 'Merah, Biru, Kuning'),
-(30, 'Hijau lumut', 'Alam', 'Kejantanan', 'Dingin', 'L', 'Biru, Kuning, Putih');
+INSERT INTO `data_warna` (`id_warna`, `gambar`, `warna`, `style_desain`, `makna_warna`, `sifat`, `usia_pengguna`, `warna_dasar`) VALUES
+(1, 'Putih.png', 'Putih', 'American Classic, Tradisional, Industrial, Minimalis, Alam', 'Suci', 'Dingin', 'R, L', 'Putih'),
+(2, 'Hitam.png', 'Hitam', 'Industrial', 'Kekuatan', 'Panas', 'R, D', 'Hitam'),
+(3, 'Kuning.png', 'Kuning', 'American Classic', 'Keceriaan', 'Panas', 'A, R, D', 'Kuning'),
+(4, 'Merah.png', 'Merah', 'American Classic', 'Keberanian', 'Panas', 'A, R, D', 'Merah'),
+(5, 'Ungu.png', 'Ungu', 'Modern', 'Keagungan', 'Dingin', 'A, R, D', 'Merah, Biru'),
+(6, 'Hijau.png', 'Hijau', 'Alam', 'Santai', 'Dingin', 'A, R, D, L', 'Kuning, Biru'),
+(7, 'Biru.png', 'Biru', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru'),
+(8, 'Oren.png', 'Oren', 'American Classic', 'Keceriaan', 'Panas', 'A, R, D, L', 'Merah, Kuning'),
+(9, 'Coklat.png', 'Coklat', 'Tradisional, Alam', 'Kenyamanan', 'Hangat', 'R, L', 'Merah, Biru, Kuning'),
+(10, 'Abu-Abu.png', 'Abu-Abu', 'Industrial', 'Kerendahan hati', 'Dingin', 'R, D, L', 'Hitam, Putih'),
+(11, 'Merah muda.png', 'Merah muda', 'Modern', 'Kewanitaan', 'Panas', 'A, R, D', 'Merah, Putih'),
+(12, 'Merah tua.png', 'Merah tua', 'Modern', 'Keberanian', 'Panas', 'R, L', 'Merah, Hitam'),
+(13, 'Biru tua.png', 'Biru tua', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Hitam'),
+(14, 'Abu-Abu tua.png', 'Abu-Abu tua', 'Industrial', 'Kerendahan hati', 'Panas', 'D, R, L', 'Putih, Hitam'),
+(15, 'Hijau tua.png', 'Hijau tua', 'Alam', 'Santai', 'Dingin', 'L', 'Hijau, Hitam'),
+(16, 'Coklat tua.png', 'Coklat tua', 'Tradisional, Alam', 'Kejantanan', 'Hangat', 'L', 'Merah, Biru, Kuning'),
+(17, 'Coklat muda.png', 'Coklat muda', 'American Classic, Tradisional, Alam', 'Kejantanan', 'Hangat', 'L', 'Merah, Biru, Kuning'),
+(18, 'Biru muda.png', 'Biru muda', 'American Classic, Alam', 'Kewanitaan', 'Dingin', 'A, R, D, L', 'Biru, Putih'),
+(19, 'Abu-Abu muda.png', 'Abu-Abu muda', 'Industrial', 'Kerendahan hati', 'Dingin', 'R, D, L', 'Hitam, Putih'),
+(20, 'Hijau muda.png', 'Hijau muda', 'American Classic, Alam', 'Kewanitaan', 'Hangat', 'A, R, D, L', 'Biru, Kuning'),
+(21, 'Magenta.png', 'Magenta', 'American Classic, Modern', 'Kewanitaan', 'Dingin', 'A, R, D, L', 'Biru, Merah, Putih'),
+(22, 'Emas.png', 'Emas', 'American Classic', 'Keagungan', 'Panas', 'A, R, D, L', 'Merah, Biru, Kuning'),
+(23, 'Biru navy.png', 'Biru navy', 'Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Hitam'),
+(24, 'Merah maroon.png', 'Merah maroon', 'Tradisional, Alam', 'Keceriaan', 'Panas', 'R, D, L', 'Merah, Biru, Kuning'),
+(25, 'Peach.png', 'Peach', 'American Classic, Modern', 'Kewanitaan', 'Hangat', 'R, D, L', 'Merah, Kuning, Putih'),
+(26, 'Silver.png', 'Silver', 'Industrial', 'Ketenangan', 'Dingin', 'R, D, L', 'Hitam, Putih'),
+(27, 'Coral.png', 'Coral', 'American Classic', 'Kewanitaan', 'Panas', 'A, R, D, L', 'Merah, Kuning'),
+(28, 'Biru air.png', 'Biru air', 'American Classic, Alam', 'Ketenangan', 'Dingin', 'A, R, D, L', 'Biru, Putih'),
+(29, 'Krem.png', 'Krem', 'American Classic', 'Kehangatan', 'Hangat', 'R, D, L', 'Merah, Biru, Kuning'),
+(30, 'Hijau lumut.png', 'Hijau lumut', 'Alam', 'Kejantanan', 'Dingin', 'L', 'Biru, Kuning, Putih'),
+(64, 'Tosca.png', 'Tosca', 'Modern', 'Ketenangan', 'Hangat', 'D', 'Kuning');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `riwayat_rekomendasi`
+-- Struktur dari tabel `riwayat_rekomendasi`
 --
 
 CREATE TABLE `riwayat_rekomendasi` (
   `id_riwayat` int(11) NOT NULL,
-  `nama_kombinasi` text,
-  `id_warna_1` text,
-  `id_warna_2` text,
-  `style_desain` text,
-  `makna_warna` text,
-  `sifat` text,
-  `usia_pengguna` text,
-  `warna_dasar` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `user` varchar(50) NOT NULL,
+  `nama_kombinasi` text DEFAULT NULL,
+  `id_warna_1` text DEFAULT NULL,
+  `id_warna_2` text DEFAULT NULL,
+  `style_desain` text DEFAULT NULL,
+  `makna_warna` text DEFAULT NULL,
+  `sifat` text DEFAULT NULL,
+  `usia_pengguna` text DEFAULT NULL,
+  `warna_dasar` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `riwayat_rekomendasi`
+-- Dumping data untuk tabel `riwayat_rekomendasi`
 --
 
-INSERT INTO `riwayat_rekomendasi` (`id_riwayat`, `nama_kombinasi`, `id_warna_1`, `id_warna_2`, `style_desain`, `makna_warna`, `sifat`, `usia_pengguna`, `warna_dasar`, `created_at`) VALUES
-(2, 'Putih & Ungu', 'A1', 'A2', 'Modern', 'Keceriaan', 'Hangat', 'Remaja (12-25 tahun)', 'Hitam', '2024-05-26 15:50:04');
+INSERT INTO `riwayat_rekomendasi` (`id_riwayat`, `user`, `nama_kombinasi`, `id_warna_1`, `id_warna_2`, `style_desain`, `makna_warna`, `sifat`, `usia_pengguna`, `warna_dasar`, `created_at`) VALUES
+(1, '', 'Putih & Ungu', 'A1', 'A2', 'Modern', 'Keceriaan', 'Hangat', 'Remaja (12-25 tahun)', 'Hitam', '2024-05-26 15:50:04'),
+(2, '', 'Putih & Merah', 'A2', 'A3', 'Modern', 'Keagungan', 'Hangat', 'Remaja (12-25 tahun)', 'Merah', '2024-06-06 19:08:31'),
+(3, '', 'Ungu & Merah tua', 'Ungu ', ' Merah tua', 'Modern, Tradisional', 'Keberanian, Kenyamanan, Kewanitaan', 'Hangat', 'Dewasa (26-45 tahun)', 'Merah', '2024-06-13 15:21:54'),
+(7, '', 'Putih & Hijau', 'Putih ', ' Hijau', 'Tradisional', 'Santai', 'Dingin', 'Remaja (12-25 tahun)', 'Hitam', '2024-06-14 19:09:37'),
+(8, '', 'Ungu & Merah muda', 'Ungu ', ' Merah muda', 'Modern', 'Kekuatan', 'Hangat', 'Dewasa (26-45 tahun)', 'Merah', '2024-06-22 12:27:48'),
+(9, '', 'Abu-abu & Silver', 'Abu-abu ', ' Silver', 'Tradisional, Industrial', 'Santai, Keberanian', 'Hangat, Dingin', 'D', 'Putih', '2024-06-29 15:24:01'),
+(10, '', 'Hijau & Coklat', 'Hijau ', ' Coklat', 'Tradisional', 'Santai, Keberanian', 'Hangat, Dingin', 'D', 'Putih', '2024-06-29 15:24:41'),
+(11, '', 'Coklat & Hijau tua', 'Coklat ', ' Hijau tua', 'Tradisional', 'Santai, Keberanian', 'Hangat, Dingin', 'D', 'Putih', '2024-06-29 15:26:20'),
+(12, 'aida', 'Hijau & Biru', 'Hijau ', ' Biru', 'Tradisional, Alam', 'Santai, Keberanian', 'Hangat, Dingin', 'D', 'Putih', '2024-06-29 15:33:46');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `user`
+--
+
+CREATE TABLE `user` (
+  `id_user` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `role` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `user`
+--
+
+INSERT INTO `user` (`id_user`, `username`, `role`, `password`) VALUES
+(6, 'barunih', 'Admin', 'barunih'),
+(7, 'klien123', 'Klien', 'klien123'),
+(8, 'aida', 'Klien', 'aida'),
+(9, 'ilham', 'Klien', 'ilham'),
+(13, 'baru', 'Klien', 'baru'),
+(17, 'zaza', 'Klien', 'zaza'),
+(18, 'ihsan', 'Klien', 'ihsan123'),
+(19, 'ali', 'Klien', 'ali123'),
+(20, 'rachel', 'Klien', 'rachel');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `data_kombinasi`
+-- Indeks untuk tabel `data_kombinasi`
 --
 ALTER TABLE `data_kombinasi`
   ADD PRIMARY KEY (`id_kombinasi`);
 
 --
--- Indexes for table `data_warna`
+-- Indeks untuk tabel `data_warna`
 --
 ALTER TABLE `data_warna`
   ADD PRIMARY KEY (`id_warna`);
 
 --
--- Indexes for table `riwayat_rekomendasi`
+-- Indeks untuk tabel `riwayat_rekomendasi`
 --
 ALTER TABLE `riwayat_rekomendasi`
   ADD PRIMARY KEY (`id_riwayat`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- Indeks untuk tabel `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`id_user`);
+
+--
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `data_kombinasi`
+-- AUTO_INCREMENT untuk tabel `data_kombinasi`
 --
 ALTER TABLE `data_kombinasi`
   MODIFY `id_kombinasi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=436;
 
 --
--- AUTO_INCREMENT for table `data_warna`
+-- AUTO_INCREMENT untuk tabel `data_warna`
 --
 ALTER TABLE `data_warna`
-  MODIFY `id_warna` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id_warna` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
--- AUTO_INCREMENT for table `riwayat_rekomendasi`
+-- AUTO_INCREMENT untuk tabel `riwayat_rekomendasi`
 --
 ALTER TABLE `riwayat_rekomendasi`
-  MODIFY `id_riwayat` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_riwayat` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT untuk tabel `user`
+--
+ALTER TABLE `user`
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
