@@ -5,6 +5,7 @@ from mysql.connector import Error
 import base64
 import os
 import time
+import math
 
 def daftar_rekomendasi():
 
@@ -241,28 +242,6 @@ def tambah():
         )
 
 def data_kombinasi():
-    def fetch_data_from_db(query):
-        try:
-            conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='',
-                database='db_rekomendasi'
-            )
-            cursor = conn.cursor()
-            cursor.execute(query)
-            result = cursor.fetchall()
-            columns = [i[0] for i in cursor.description]
-            df = pd.DataFrame(result, columns=columns)
-        except Error as e:
-            st.error(f"Error: {e}")
-            return pd.DataFrame()  # Return an empty DataFrame on error
-        finally:
-            if conn.is_connected():
-                cursor.close()
-                conn.close()
-        return df
-
     # Menambahkan kolom Gambar dengan format base64
     def get_image_base64(warna):
         path_to_image = f'data/warna/{warna}.jpg'
@@ -273,8 +252,20 @@ def data_kombinasi():
 
     st.header("Data Kombinasi")
     query_data_kombinasi = "SELECT * FROM data_kombinasi"
-    df_kombinasi = fetch_data_from_db(query_data_kombinasi)
+    total_items_query = "SELECT COUNT(*) FROM data_kombinasi"
+    items_per_page = 10
 
+    # Hitung total item
+    total_items_df = fetch_paginated(total_items_query)
+    total_items = total_items_df.iloc[0, 0] if not total_items_df.empty else 0
+    total_pages = math.ceil(total_items / items_per_page)
+
+    # Pagination
+    current_page = st.selectbox("Halaman", range(1, total_pages + 1))
+    offset = (current_page - 1) * items_per_page
+
+    df_kombinasi = fetch_paginated(query_data_kombinasi, offset, items_per_page)
+    
     # Rename columns as needed
     df_kombinasi.columns = ["ID", "Kombinasi Warna", "Style Desain", "Makna Warna", "Sifat", "Usia Pengguna", "Warna Dasar"]
 
@@ -363,6 +354,29 @@ def data_kombinasi():
         col8.write(row['Warna Dasar'])
         if col9.button("Hapus", key=f"delete_{row['ID']}"):
             st.session_state['delete_id'] = row['ID']
+
+def fetch_paginated(query, offset=0, limit=10):
+        try:
+            conn = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='db_rekomendasi'
+            )
+            cursor = conn.cursor()
+            query_with_pagination = f"{query} LIMIT {limit} OFFSET {offset}"
+            cursor.execute(query_with_pagination)
+            result = cursor.fetchall()
+            columns = [i[0] for i in cursor.description]
+            df = pd.DataFrame(result, columns=columns)
+        except Error as e:
+            st.error(f"Error: {e}")
+            return pd.DataFrame()  # Return an empty DataFrame on error
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+        return df
 
 if __name__ == "__main__":
     daftar_rekomendasi()
