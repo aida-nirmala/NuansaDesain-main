@@ -22,31 +22,22 @@ def daftar_rekomendasi():
         data_kombinasi()
 
 def data_warna():
-    def fetch_data_from_db(query):
-        try:
-            conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='',
-                database='db_rekomendasi'
-            )
-            cursor = conn.cursor()
-            cursor.execute(query)
-            result = cursor.fetchall()
-            columns = [i[0] for i in cursor.description]
-            df = pd.DataFrame(result, columns=columns)
-        except Error as e:
-            st.error(f"Error: {e}")
-            return pd.DataFrame()  # Return an empty DataFrame on error
-        finally:
-            if conn.is_connected():
-                cursor.close()
-                conn.close()
-        return df
-
-    query_user = "SELECT * FROM data_warna"
-    df_asli = fetch_data_from_db(query_user)
     st.header("Data Warna")
+    
+    query_user = "SELECT * FROM data_warna"
+    total_items_query = "SELECT COUNT(*) FROM data_warna"
+    items_per_page = 10
+
+    # Hitung total item
+    total_items_df = fetch_paginated(total_items_query)
+    total_items = total_items_df.iloc[0, 0] if not total_items_df.empty else 0
+    total_pages = math.ceil(total_items / items_per_page)
+
+    # Pagination
+    current_page = st.selectbox("Halaman", range(1, total_pages + 1))
+    offset = (current_page - 1) * items_per_page
+
+    df_asli = fetch_paginated(query_user, offset, items_per_page)
 
     # Check if DataFrame is empty
     if df_asli.empty:
@@ -60,18 +51,23 @@ def data_warna():
             <p>Berikut adalah daftar semua warna dasar yang terdaftar dalam sistem rekomendasi warna.</p>
         """, unsafe_allow_html=True)
 
-        def delete_user_from_db(id_warna):
+        def delete_warna_from_db(id_warna):
             try:
-                conn = mysql.connector.connect(
-                    host='localhost',
-                    user='root',
-                    password='',
-                    database='db_rekomendasi'
-                )
+                conn = create_connection()
                 if conn.is_connected():
                     cursor = conn.cursor()
+
+                    # Cek nama warna yang akan dihapus
+                    warna = fetch(f"SELECT warna FROM data_warna WHERE id_warna = {id_warna}")
+
+                    # Hapus data dari tabel data_kombinasi
+                    delete_query_kombinasi = f"DELETE FROM data_kombinasi WHERE kombinasi_warna LIKE '{warna[0][0]} &%' OR kombinasi_warna LIKE '%& {warna[0][0]}'"
+                    cursor.execute(delete_query_kombinasi)
+
+                    # Hapus data dari tabel data_warna
                     delete_query = "DELETE FROM data_warna WHERE id_warna = %s"
-                    cursor.execute(delete_query, (id_warna,))
+                    cursor.execute(delete_query, (id_warna, ))
+
                     conn.commit()
                     st.success("Data warna berhasil dihapus dari database.")
                     st.session_state['delete_id'] = None  # Reset delete_id after deletion
@@ -93,18 +89,18 @@ def data_warna():
 
         if st.session_state['delete_id'] is not None:
             if not st.session_state['confirm_delete']:
-                st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
+                st.warning(f"Apakah Anda yakin ingin menghapus warna dengan ID {st.session_state['delete_id']}?")
                 col_yes, col_no = st.columns(2)
                 if col_yes.button("Ya"):
-                    delete_user_from_db(st.session_state['delete_id'])
+                    delete_warna_from_db(st.session_state['delete_id'])
                 if col_no.button("Batal"):
                     st.session_state['delete_id'] = None
                     st.session_state['confirm_delete'] = False
             else:
-                st.warning(f"Apakah Anda yakin ingin menghapus user dengan ID {st.session_state['delete_id']}?")
+                st.warning(f"Apakah Anda yakin ingin menghapus warna dengan ID {st.session_state['delete_id']}?")
                 col_yes, col_no = st.columns(2)
                 if col_yes.button("Ya"):
-                    delete_user_from_db(st.session_state['delete_id'])
+                    delete_warna_from_db(st.session_state['delete_id'])
                 if col_no.button("Batal"):
                     st.session_state['delete_id'] = None
                     st.session_state['confirm_delete'] = False
@@ -116,16 +112,14 @@ def data_warna():
         for header, col in zip(headers, header_cols):
             col.write(f"**{header}**")
 
-        df_asli = df_asli.drop(columns=['Gambar'])
-
-        def get_image_base64(warna):
-            path_to_image = f'data/warna/{warna}.jpg'
+        def get_image_base64(path_to_image):
             with open(path_to_image, 'rb') as f:
                 image_bytes = f.read()
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             return image_base64
-
-        df_asli['Gambar'] = df_asli['Warna'].apply(lambda x: f'<img src="data:image/jpg;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
+        
+        df_asli["Gambar"] = df_asli["Gambar"].apply(lambda x: f'data/warna/{x}' if x else 'data/warna/default.jpg')
+        df_asli["Gambar"] = df_asli["Gambar"].apply(lambda x: f'<img src="data:image/jpg;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
 
         for index, row in df_asli.iterrows():
             col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
@@ -142,15 +136,6 @@ def data_warna():
 
 def tambah():
     st.header('Tambah Data Warna')
-    
-    # Fungsi untuk membuat koneksi ke database
-    def create_connection():
-        return mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='',
-            database='db_rekomendasi'
-        )
 
     conn = create_connection()
 
@@ -183,14 +168,49 @@ def tambah():
             if conn.is_connected():
                 cursor.close()
 
+    def merge_lists(string_list, addition):
+        # Buat list dari string yang dipisahkan oleh koma
+        ls = string_list.split(', ')
+
+        # Tambahkan elemen baru ke list
+        for item in addition:
+            if item not in ls:
+                ls.append(item)
+        
+        return ls
+
+    def save_combinations(existing_colors, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+        try:
+            if conn.is_connected():
+                cursor = conn.cursor()
+                for color in existing_colors:
+                    cursor.execute('''
+                    INSERT INTO data_kombinasi (kombinasi_warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ''', (
+                        f"{color[0]} & {warna}",
+                        ', '.join(merge_lists(color[1], style_desain)),
+                        ', '.join(merge_lists(color[2], makna_warna)),
+                        ', '.join(merge_lists(color[3], sifat)),
+                        ', '.join(merge_lists(color[4], usia_pengguna)),
+                        ', '.join(merge_lists(color[5], warna_dasar))
+                    ))
+                    conn.commit()
+                st.success("Data Kombinasi Warna berhasil disimpan ke database.")
+            else:
+                st.error("Koneksi ke database gagal.")
+        except Exception as e:
+            st.error(f"Error saat menyimpan kombinasi warna: {e}")
+            return None
+
     def save_image(gambar):
         # Simpan gambar ke direktori 'gambar'
         try:
-            if not os.path.exists('gambar'):
-                os.makedirs('gambar')
+            if not os.path.exists('data/warna'):
+                os.makedirs('data/warna')
             
             # Simpan gambar dengan nama yang unik atau sesuai input
-            gambar_path = os.path.join('gambar', gambar.name)
+            gambar_path = os.path.join('data/warna/', gambar.name)
             with open(gambar_path, "wb") as f:
                 f.write(gambar.getbuffer())
             
@@ -241,10 +261,12 @@ def tambah():
             warna_dasar_preference
         )
 
+        existing_colors = fetch(f"SELECT warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar FROM data_warna WHERE warna != '{warna}'")
+        save_combinations(existing_colors, warna, style_desain_preference, makna_warna_preference, sifat_preference, usia_pengguna_preference, warna_dasar_preference)
+
 def data_kombinasi():
     # Menambahkan kolom Gambar dengan format base64
-    def get_image_base64(warna):
-        path_to_image = f'data/warna/{warna}.jpg'
+    def get_image_base64(path_to_image):
         with open(path_to_image, 'rb') as f:
             image_bytes = f.read()
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
@@ -335,8 +357,18 @@ def data_kombinasi():
     
     def get_combined_image_base64(kombinasi_warna):
         warna_1, warna_2 = kombinasi_warna.split(' & ')
-        img1 = get_image_base64(warna_1)
-        img2 = get_image_base64(warna_2)
+
+        data_warna_1 = fetch(f"SELECT gambar FROM data_warna WHERE warna = '{warna_1}'")
+        data_warna_2 = fetch(f"SELECT gambar FROM data_warna WHERE warna = '{warna_2}'")
+
+        if not data_warna_1 or not data_warna_2:
+            return None
+        
+        path_gambar_1 = 'data/warna/' + data_warna_1[0][0] if data_warna_1[0][0] else 'data/warna/default.jpg'
+        path_gambar_2 = 'data/warna/' + data_warna_2[0][0] if data_warna_2[0][0] else 'data/warna/default.jpg'
+
+        img1 = get_image_base64(path_gambar_1)
+        img2 = get_image_base64(path_gambar_2)
         return f'<img src="data:image/jpg;base64,{img1}" alt="{warna_1}" style="width:50px;height:auto;">' \
                f'<img src="data:image/jpg;base64,{img2}" alt="{warna_2}" style="width:50px;height:auto;">'
 
@@ -355,16 +387,14 @@ def data_kombinasi():
         if col9.button("Hapus", key=f"delete_{row['ID']}"):
             st.session_state['delete_id'] = row['ID']
 
-def fetch_paginated(query, offset=0, limit=10):
+def fetch_paginated(query, offset=0, limit=0):
         try:
-            conn = mysql.connector.connect(
-                host='localhost',
-                user='root',
-                password='',
-                database='db_rekomendasi'
-            )
+            conn = create_connection()
             cursor = conn.cursor()
-            query_with_pagination = f"{query} LIMIT {limit} OFFSET {offset}"
+            if limit == 0:
+                query_with_pagination = query
+            else:
+                query_with_pagination = f"{query} LIMIT {limit} OFFSET {offset}"
             cursor.execute(query_with_pagination)
             result = cursor.fetchall()
             columns = [i[0] for i in cursor.description]
@@ -377,6 +407,31 @@ def fetch_paginated(query, offset=0, limit=10):
                 cursor.close()
                 conn.close()
         return df
+
+def fetch(query):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+    except Error as e:
+        st.error(f"Error: {e}")
+        return pd.DataFrame()  # Return an empty DataFrame on error
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return result
+
+# Fungsi untuk membuat koneksi ke database
+def create_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='db_rekomendasi'
+    )
 
 if __name__ == "__main__":
     daftar_rekomendasi()
