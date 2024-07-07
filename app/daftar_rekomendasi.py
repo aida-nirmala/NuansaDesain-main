@@ -17,11 +17,11 @@ def daftar_rekomendasi():
     tabs = ["Data Warna", "Tambah Data Warna", "Data Kombinasi"]
 
     current_tab = "Data Warna"
-    if st.session_state.get("current_tab") in tabs:
+    if st.session_state.get("current_tab", current_tab) in tabs:
         current_tab = st.selectbox("Pilih Halaman", tabs, on_change=handle_tab_change())
-
+    
     active = st.session_state.get("current_tab", current_tab)
-
+    
     if active is None:
         active = current_tab
         st.session_state['current_tab'] = active
