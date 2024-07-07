@@ -6,15 +6,6 @@ from mysql.connector import Error
 
 def pilih_rekomendasi():
     st.title('Pilih Rekomendasi Warna')
-    
-    # Fungsi untuk membuat koneksi ke database
-    def create_connection():
-        return mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='',
-            database='db_rekomendasi'
-        )
 
     conn = create_connection()
 
@@ -24,14 +15,13 @@ def pilih_rekomendasi():
                 return [item.strip() for item in value.split(',')]
             else:
                 return value
-
-        color_data = pd.read_csv("data/kombinasi_warna.csv", converters={
-            'style_desain': convert_to_list,
-            'makna_warna': convert_to_list,
-            'sifat': convert_to_list,
-            'usia_pengguna': convert_to_list,
-            'warna_dasar': convert_to_list
-        })
+            
+        color_data = pd.read_sql_query("SELECT kombinasi_warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar FROM data_kombinasi", con=conn)
+        color_data.style_desain = color_data.style_desain.apply(convert_to_list)
+        color_data.makna_warna = color_data.makna_warna.apply(convert_to_list)
+        color_data.sifat = color_data.sifat.apply(convert_to_list)
+        color_data.usia_pengguna = color_data.usia_pengguna.apply(convert_to_list)
+        color_data.warna_dasar = color_data.warna_dasar.apply(convert_to_list)
 
         color_database = color_data.values.tolist()
         recommendations = []
@@ -172,9 +162,14 @@ def pilih_rekomendasi():
             warna_terpisah = [warna.strip() for warna in nama_warna.split('&')]
             cols = col2.columns(len(warna_terpisah))
             for col, warna in zip(cols, warna_terpisah):
-                path_to_color_image = os.path.join("data", "warna", f"{warna}.jpg")
-                if os.path.exists(path_to_color_image):
-                    col.image(path_to_color_image, caption=warna, use_column_width=True)
+                warna_data = fetch("SELECT gambar FROM data_warna WHERE warna = '%s'" % warna)
+                if warna_data:
+                    path_to_image = os.path.join("data", "warna", warna_data[0][0])
+                else:
+                    path_to_image = os.path.join("data", "warna", f"{warna}.jpg")
+
+                if os.path.exists(path_to_image):
+                    col.image(path_to_image, caption=warna, use_column_width=True)
                 else:
                     col.warning(f"Image for {warna} not found!")
 
@@ -199,3 +194,27 @@ def pilih_rekomendasi():
                 )
                 st.session_state.has_cari_rekomendasi = False
 
+def fetch(query):
+    try:
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+    except Error as e:
+        st.error(f"Error: {e}")
+        return pd.DataFrame()  # Return an empty DataFrame on error
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    return result
+
+# Fungsi untuk membuat koneksi ke database
+def create_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='db_rekomendasi'
+    )
