@@ -8,18 +8,34 @@ import time
 import math
 
 def daftar_rekomendasi():
-
     # Pilihan tab
+    def handle_tab_change():
+        st.session_state['current_tab'] = None
+        if 'edit_triggered' in st.session_state and st.session_state['edit_triggered']:
+            st.session_state['current_tab'] = "Edit Warna"
+
     tabs = ["Data Warna", "Tambah Data Warna", "Data Kombinasi"]
-    current_tab = st.selectbox("Pilih Halaman", tabs)
+
+    current_tab = "Data Warna"
+    if st.session_state.get("current_tab") in tabs:
+        current_tab = st.selectbox("Pilih Halaman", tabs, on_change=handle_tab_change())
+
+    active = st.session_state.get("current_tab", current_tab)
+
+    if active is None:
+        active = current_tab
+        st.session_state['current_tab'] = active
 
     # Menampilkan konten berdasarkan tab yang dipilih
-    if current_tab == "Tambah Data Warna":
+    if active == "Tambah Data Warna":
         tambah()
-    elif current_tab == "Data Warna":
+    elif active == "Data Warna":
         data_warna()
-    elif current_tab == "Data Kombinasi":
+    elif active == "Data Kombinasi":
         data_kombinasi()
+    elif active == "Edit Warna":
+        edit_id = st.session_state['edit_id']
+        edit_warna(edit_id)
 
 def data_warna():
     st.header("Data Warna")
@@ -122,7 +138,7 @@ def data_warna():
         df_asli["Gambar"] = df_asli["Gambar"].apply(lambda x: f'<img src="data:image/jpg;base64,{get_image_base64(x)}" alt="{x}" style="width:100px;height:auto;">')
 
         for index, row in df_asli.iterrows():
-            col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
+            col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 1, 1])
             col1.write(row['ID'])
             col2.markdown(row['Gambar'], unsafe_allow_html=True)
             col3.write(row['Warna'])
@@ -131,7 +147,12 @@ def data_warna():
             col6.write(row['Sifat'])
             col7.write(row['Usia Pengguna'])
             col8.write(row['Warna Dasar'])
-            if col9.button("Hapus", key=f"delete_{row['ID']}"):
+            if col9.button("Edit", key=f"edit_{row['ID']}"):
+                st.session_state['edit_triggered'] = True
+                st.session_state['edit_id'] = row['ID']
+                st.session_state['current_tab'] = "Edit Warna"
+                st.experimental_rerun()
+            if col10.button("Hapus", key=f"delete_{row['ID']}"):
                 st.session_state['delete_id'] = row['ID']
 
 def tambah():
@@ -167,58 +188,6 @@ def tambah():
         finally:
             if conn.is_connected():
                 cursor.close()
-
-    def merge_lists(string_list, addition):
-        # Buat list dari string yang dipisahkan oleh koma
-        ls = string_list.split(', ')
-
-        # Tambahkan elemen baru ke list
-        for item in addition:
-            if item not in ls:
-                ls.append(item)
-        
-        return ls
-
-    def save_combinations(existing_colors, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
-        try:
-            if conn.is_connected():
-                cursor = conn.cursor()
-                for color in existing_colors:
-                    cursor.execute('''
-                    INSERT INTO data_kombinasi (kombinasi_warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ''', (
-                        f"{color[0]} & {warna}",
-                        ', '.join(merge_lists(color[1], style_desain)),
-                        ', '.join(merge_lists(color[2], makna_warna)),
-                        ', '.join(merge_lists(color[3], sifat)),
-                        ', '.join(merge_lists(color[4], usia_pengguna)),
-                        ', '.join(merge_lists(color[5], warna_dasar))
-                    ))
-                    conn.commit()
-                st.success("Data Kombinasi Warna berhasil disimpan ke database.")
-            else:
-                st.error("Koneksi ke database gagal.")
-        except Exception as e:
-            st.error(f"Error saat menyimpan kombinasi warna: {e}")
-            return None
-
-    def save_image(gambar):
-        # Simpan gambar ke direktori 'gambar'
-        try:
-            if not os.path.exists('data/warna'):
-                os.makedirs('data/warna')
-            
-            # Simpan gambar dengan nama yang unik atau sesuai input
-            gambar_path = os.path.join('data/warna/', gambar.name)
-            with open(gambar_path, "wb") as f:
-                f.write(gambar.getbuffer())
-            
-            st.success(f"Gambar '{gambar.name}' berhasil disimpan.")
-            return gambar.name
-        except Exception as e:
-            st.error(f"Error saat menyimpan gambar: {e}")
-            return None
     
     # Input untuk gambar
     gambar = st.file_uploader("Pilih gambar untuk warna:")
@@ -387,6 +356,121 @@ def data_kombinasi():
         if col9.button("Hapus", key=f"delete_{row['ID']}"):
             st.session_state['delete_id'] = row['ID']
 
+def edit_warna(id):
+    st.header("Edit Warna")
+
+    query = f"SELECT * FROM data_warna WHERE id_warna = {id}"
+    result = fetch(query)
+
+    gambar = st.file_uploader("Pilih gambar untuk warna: (kosongkan jika tidak ingin mengubah)")
+    if gambar is not None:
+        st.subheader("Gambar yang Dipilih")
+        st.image(gambar, caption='Gambar yang Dipilih', use_column_width=True)
+    elif result[0][1] is not None:
+        st.subheader("Gambar saat ini")
+        st.image(f"data/warna/{result[0][1]}", caption='Gambar saat ini', use_column_width=True)
+
+    warna = st.text_input("Masukkan nama warna:", result[0][2])
+    style_desain_preference = st.multiselect("Pilih preferensi style desain:", ["American Classic", "Tradisional", "Modern", "Industrial", "Alam", "Minimalis"], result[0][3].split(', '))
+    makna_warna_preference = st.multiselect("Pilih preferensi makna warna:", ["Suci", "Kekuatan", "Keceriaan", "Keberanian", "Keagungan", "Santai", "Ketenangan", "Kenyamanan", "Kerendahan hati", "Kewanitaan", "Kejantanan", "Kehangatan"], result[0][4].split(', '))
+    sifat_preference = st.multiselect("Pilih preferensi sifat:", ["Panas", "Hangat", "Dingin"], result[0][5].split(', '))
+
+    existing_usia = result[0][6].split(', ')
+    selected_usia = []
+    for item in existing_usia:
+        if item == "A":
+            selected_usia.append("Anak-anak (5-11 tahun)")
+        elif item == "R":
+            selected_usia.append("Remaja (12-25 tahun)")
+        elif item == "D":
+            selected_usia.append("Dewasa (26-45 tahun)")
+        elif item == "L":
+            selected_usia.append("Lansia (<45 tahun)")
+
+    usia_pengguna_display = st.multiselect("Pilih preferensi usia pengguna:", ["Anak-anak (5-11 tahun)", "Remaja (12-25 tahun)", "Dewasa (26-45 tahun)", "Lansia (<45 tahun)"], selected_usia)
+    warna_dasar_preference = st.multiselect("Pilih preferensi warna dasar:", ["Putih", "Hitam", "Merah", "Kuning", "Biru"], result[0][7].split(', '))
+
+    usia_pengguna_preference = []
+    for item in usia_pengguna_display:
+        if item == "Anak-anak (5-11 tahun)":
+            usia_pengguna_preference.append("A")
+        elif item == "Remaja (12-25 tahun)":
+            usia_pengguna_preference.append("R")
+        elif item == "Dewasa (26-45 tahun)":
+            usia_pengguna_preference.append("D")
+        elif item == "Lansia (<45 tahun)":
+            usia_pengguna_preference.append("L")
+
+    col1, col2  = st.columns([1, 1])
+    if col1.button("Simpan Perubahan"):
+        simpan_edit(id, gambar, warna, style_desain_preference, makna_warna_preference, sifat_preference, usia_pengguna_preference, warna_dasar_preference)
+        st.session_state['edit_triggered'] = False
+        st.session_state['current_tab'] = "Data Warna"
+        st.experimental_rerun()
+    if col2.button("Batal"):
+        st.session_state['edit_triggered'] = False
+        st.session_state['current_tab'] = "Data Warna"
+        st.experimental_rerun()
+
+def simpan_edit(id, gambar, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+    try:
+        conn = create_connection()
+        if conn.is_connected():
+            cursor = conn.cursor()
+
+            existing_data = fetch(f"SELECT warna, gambar FROM data_warna WHERE id_warna = {id}")
+
+            # Update data pada tabel data_warna
+            cursor.execute('''
+            UPDATE data_warna
+            SET warna = %s, style_desain = %s, makna_warna = %s, sifat = %s, usia_pengguna = %s, warna_dasar = %s
+            WHERE id_warna = %s
+            ''', (
+                warna,
+                ', '.join(style_desain),
+                ', '.join(makna_warna),
+                ', '.join(sifat),
+                ', '.join(usia_pengguna),
+                ', '.join(warna_dasar),
+                id
+            ))
+
+            # Update gambar jika ada
+            if gambar is not None:
+                # Hapus gambar lama
+                if existing_data[0][1] is not None:
+                    os.remove(f"data/warna/{existing_data[0][1]}")
+                
+                # Simpan gambar baru
+                gambar_filename = save_image(gambar)
+                cursor.execute('''
+                UPDATE data_warna
+                SET gambar = %s
+                WHERE id_warna = %s
+                ''', (
+                    gambar_filename,
+                    id
+                ))
+
+            # Hapus data kombinasi yang sudah ada
+            cursor.execute(f"DELETE FROM data_kombinasi WHERE kombinasi_warna LIKE '{existing_data[0][0]} &%' OR kombinasi_warna LIKE '%& {existing_data[0][0]}'")
+
+            conn.commit()
+
+            # Simpan data kombinasi baru
+            existing_colors = fetch(f"SELECT warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar FROM data_warna WHERE id_warna != '{id}'")
+            save_combinations(existing_colors, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+
+            st.success("Data Warna berhasil diubah.")
+        else:
+            st.error("Koneksi ke database gagal.")
+    except Error as e:
+        st.error(f"Error: {e}")
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
 def fetch_paginated(query, offset=0, limit=0):
         try:
             conn = create_connection()
@@ -432,6 +516,59 @@ def create_connection():
         password='',
         database='db_rekomendasi'
     )
+
+def save_image(gambar):
+    # Simpan gambar ke direktori 'gambar'
+    try:
+        if not os.path.exists('data/warna'):
+            os.makedirs('data/warna')
+        
+        # Simpan gambar dengan nama yang unik atau sesuai input
+        gambar_path = os.path.join('data/warna/', gambar.name)
+        with open(gambar_path, "wb") as f:
+            f.write(gambar.getbuffer())
+        
+        st.success(f"Gambar '{gambar.name}' berhasil disimpan.")
+        return gambar.name
+    except Exception as e:
+        st.error(f"Error saat menyimpan gambar: {e}")
+        return None
+
+def save_combinations(existing_colors, warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar):
+    try:
+        conn = create_connection()
+        if conn.is_connected():
+            cursor = conn.cursor()
+            for color in existing_colors:
+                cursor.execute('''
+                INSERT INTO data_kombinasi (kombinasi_warna, style_desain, makna_warna, sifat, usia_pengguna, warna_dasar)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ''', (
+                    f"{color[0]} & {warna}",
+                    ', '.join(merge_lists(color[1], style_desain)),
+                    ', '.join(merge_lists(color[2], makna_warna)),
+                    ', '.join(merge_lists(color[3], sifat)),
+                    ', '.join(merge_lists(color[4], usia_pengguna)),
+                    ', '.join(merge_lists(color[5], warna_dasar))
+                ))
+                conn.commit()
+            st.success("Data Kombinasi Warna berhasil disimpan ke database.")
+        else:
+            st.error("Koneksi ke database gagal.")
+    except Exception as e:
+        st.error(f"Error saat menyimpan kombinasi warna: {e}")
+        return None
+
+def merge_lists(string_list, addition):
+        # Buat list dari string yang dipisahkan oleh koma
+        ls = string_list.split(', ')
+
+        # Tambahkan elemen baru ke list
+        for item in addition:
+            if item not in ls:
+                ls.append(item)
+        
+        return ls
 
 if __name__ == "__main__":
     daftar_rekomendasi()
