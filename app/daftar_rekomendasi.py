@@ -7,6 +7,22 @@ import os
 import time
 import math
 
+@st.experimental_dialog("Konfirmasi")
+def dialog():
+    if 'delete_id' not in st.session_state or st.session_state['delete_id'] is None:
+        return
+    
+    st.write("Apakah Anda yakin ingin menghapus warna dengan ID", st.session_state['delete_id'], "?")
+
+    col1, col2 = st.columns([1, 1])
+
+    if col1.button("Ya"):
+        delete_warna_from_db(st.session_state['delete_id'])
+        st.rerun()
+    if col2.button("Tidak"):
+        st.session_state['delete_id'] = None
+        st.rerun()
+
 def daftar_rekomendasi():
     # Pilihan tab
     def handle_tab_change():
@@ -67,60 +83,6 @@ def data_warna():
             <p>Berikut adalah daftar semua warna dasar yang terdaftar dalam sistem rekomendasi warna.</p>
         """, unsafe_allow_html=True)
 
-        def delete_warna_from_db(id_warna):
-            try:
-                conn = create_connection()
-                if conn.is_connected():
-                    cursor = conn.cursor()
-
-                    # Cek nama warna yang akan dihapus
-                    warna = fetch(f"SELECT warna FROM data_warna WHERE id_warna = {id_warna}")
-
-                    # Hapus data dari tabel data_kombinasi
-                    delete_query_kombinasi = f"DELETE FROM data_kombinasi WHERE kombinasi_warna LIKE '{warna[0][0]} &%' OR kombinasi_warna LIKE '%& {warna[0][0]}'"
-                    cursor.execute(delete_query_kombinasi)
-
-                    # Hapus data dari tabel data_warna
-                    delete_query = "DELETE FROM data_warna WHERE id_warna = %s"
-                    cursor.execute(delete_query, (id_warna, ))
-
-                    conn.commit()
-                    st.success("Data warna berhasil dihapus dari database.")
-                    st.session_state['delete_id'] = None  # Reset delete_id after deletion
-                    time.sleep(2)
-                    st.experimental_rerun()   
-            except Error as e:
-                st.error(f"Error: {e}")
-            finally:
-                if conn.is_connected():
-                    cursor.close()
-                    conn.close()
-        
-        # Inisialisasi session_state
-        if 'delete_id' not in st.session_state:
-            st.session_state['delete_id'] = None
-
-        if 'confirm_delete' not in st.session_state:
-            st.session_state['confirm_delete'] = False
-
-        if st.session_state['delete_id'] is not None:
-            if not st.session_state['confirm_delete']:
-                st.warning(f"Apakah Anda yakin ingin menghapus warna dengan ID {st.session_state['delete_id']}?")
-                col_yes, col_no = st.columns(2)
-                if col_yes.button("Ya"):
-                    delete_warna_from_db(st.session_state['delete_id'])
-                if col_no.button("Batal"):
-                    st.session_state['delete_id'] = None
-                    st.session_state['confirm_delete'] = False
-            else:
-                st.warning(f"Apakah Anda yakin ingin menghapus warna dengan ID {st.session_state['delete_id']}?")
-                col_yes, col_no = st.columns(2)
-                if col_yes.button("Ya"):
-                    delete_warna_from_db(st.session_state['delete_id'])
-                if col_no.button("Batal"):
-                    st.session_state['delete_id'] = None
-                    st.session_state['confirm_delete'] = False
-
         # Create header columns
         header_cols = st.columns([1, 2, 2, 2, 2, 2, 2, 2, 2])
         
@@ -154,7 +116,37 @@ def data_warna():
                 st.experimental_rerun()
             if col10.button("Hapus", key=f"delete_{row['ID']}"):
                 st.session_state['delete_id'] = row['ID']
+                dialog()
 
+def delete_warna_from_db(id_warna):
+    try:
+        conn = create_connection()
+        if conn.is_connected():
+            cursor = conn.cursor()
+
+            # Cek nama warna yang akan dihapus
+            warna = fetch(f"SELECT warna FROM data_warna WHERE id_warna = {id_warna}")
+
+            # Hapus data dari tabel data_kombinasi
+            delete_query_kombinasi = f"DELETE FROM data_kombinasi WHERE kombinasi_warna LIKE '{warna[0][0]} &%' OR kombinasi_warna LIKE '%& {warna[0][0]}'"
+            cursor.execute(delete_query_kombinasi)
+
+            # Hapus data dari tabel data_warna
+            delete_query = "DELETE FROM data_warna WHERE id_warna = %s"
+            cursor.execute(delete_query, (id_warna, ))
+
+            conn.commit()
+            st.success("Data warna berhasil dihapus dari database.")
+            st.session_state['delete_id'] = None  # Reset delete_id after deletion
+            time.sleep(10)
+            st.experimental_rerun()   
+    except Error as e:
+        st.error(f"Error: {e}")
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+        
 def tambah():
     st.header('Tambah Data Warna')
 
